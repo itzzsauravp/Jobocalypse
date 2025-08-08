@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { hash } from 'bcryptjs';
-import { User } from 'src/auth/auth.inteface';
-import { SignInDTO } from 'src/auth/dto/sign-in.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from './interface/user-interface';
+import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAllUsers(): Promise<Array<User>> {
-    const users = this.prismaService.user.findMany();
+    const users = await this.prismaService.user.findMany();
     return users;
   }
 
@@ -42,7 +42,7 @@ export class UserService {
     return user ? true : false;
   }
 
-  async createUser(dto: SignInDTO): Promise<User> {
+  async createUser(dto: CreateEntityDTO): Promise<User> {
     const hashedPassword = await hash(dto.password, 10);
     const user = await this.prismaService.user.create({
       data: {

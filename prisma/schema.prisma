@@ -59,9 +59,11 @@ model Vacancy {
 
 model Admin {
   id String @id @default(uuid()) @db.Uuid
+  email String @unique
   firstName String
   lastName String
   password String
-  address String
-  phoneNumber String
+  address String?
+  phoneNumber String?
+  refreshToken String?
 }

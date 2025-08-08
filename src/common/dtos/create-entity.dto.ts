@@ -5,7 +5,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 
-export class SignInDTO {
+export class CreateEntityDTO {
   @IsEmail()
   email: string;
 

@@ -7,6 +7,7 @@ import {
 import { map, Observable } from 'rxjs';
 import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
 import { Reflector } from '@nestjs/core';
+import type { Response } from 'express';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -17,6 +18,8 @@ export class ResponseInterceptor implements NestInterceptor {
         context.getHandler(),
         context.getClass(),
       ]) || 'Request successful';
+    const response: Response = context.switchToHttp().getResponse();
+    response.status(200);
     return next.handle().pipe(
       map((data) => ({
         success: true,
