@@ -26,7 +26,7 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.findUserByEmail(email);
-    if (!user) {
+    if (!user || user.isDeleted) {
       throw new UnauthorizedException('Invalid Credentials');
     }
     const isPasswordValid = await compare(password, user.password);
@@ -42,21 +42,11 @@ export class AuthService {
         'Password does not match the confirm password',
       );
     }
-    const existingUser = await this.userService.findUserByEmail(dto.email);
+    const existingUser = await this.userService.findUserExists(dto.email);
     if (existingUser)
       throw new ConflictException('Email is already registered');
-    const hashedPassword = await hash(dto.password, 10);
     try {
-      const user = await this.prismaService.user.create({
-        data: {
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          email: dto.email,
-          password: hashedPassword,
-          address: dto.address,
-          phoneNumber: dto.phoneNumber,
-        },
-      });
+      const user = this.userService.createUser(dto);
       return user;
     } catch (error) {
       console.error(error);

@@ -14,6 +14,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Firm {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  location String
+  type String
+  establishedOn DateTime 
+  phoneNumber String
+  email String
+  isVerified Boolean @default(false)
+  isDeleted Boolean @default(false)
+
+  vacancies Vacancy[]
+  employees User[]
+}
+
 model User {
   id String @id @default(uuid()) @db.Uuid
   firstName String
@@ -25,4 +40,28 @@ model User {
   refreshToken String?
   isVerified Boolean @default(false)
   isDeleted Boolean @default(false)
+
+  worksAtID String? @db.Uuid
+  worksAt Firm? @relation(fields: [worksAtID], references: [id]) 
+}
+
+model Vacancy {
+  id String @id @default(uuid()) @db.Uuid
+  title String
+  description String
+  deadline DateTime
+  tags String[]
+  isActive Boolean @default(false)
+
+  firmID String @db.Uuid
+  firm Firm @relation(fields: [firmID], references: id)
+}
+
+model Admin {
+  id String @id @default(uuid()) @db.Uuid
+  firstName String
+  lastName String
+  password String
+  address String
+  phoneNumber String
 }

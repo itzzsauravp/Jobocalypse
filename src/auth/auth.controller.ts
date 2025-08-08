@@ -11,7 +11,7 @@ import {
 import { type Request as ExpRequest, type Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
-import { LoginReturn, User } from './auth.inteface';
+import { LoginReturn } from './auth.inteface';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SignInDTO } from './dto/sign-in.dto';
 import { JwtAuthRefreshGuard } from './guards/jwt-auth-refresh.guard';
@@ -29,7 +29,7 @@ export class AuthController {
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
   ): Promise<LoginReturn> {
-    return await this.authService.generateToken(request.user as User, response);
+    return await this.authService.generateToken(request.user, response);
   }
 
   @Post('signin')
@@ -43,7 +43,7 @@ export class AuthController {
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return await this.authService.generateToken(request.user as User, response);
+    return await this.authService.generateToken(request.user, response);
   }
 
   @UseGuards(JwtAuthGuard)

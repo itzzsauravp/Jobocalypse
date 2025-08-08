@@ -12,7 +12,7 @@ export interface User {
 }
 
 export interface TokenPayload {
-  sub: number;
+  sub: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -25,6 +25,6 @@ export interface LoginReturn {
 }
 
 export interface UserPropOnRequest {
-  userID: number;
+  id: string;
   email: string;
 }
