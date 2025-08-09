@@ -15,26 +15,31 @@ import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { UserLocalAuthGuard } from './guards/user-local-auth.guard';
-import { LoginReturnUser } from '../common/auth.inteface';
+import { User } from 'src/user/interface/user-interface';
+import { LoginReturn } from '../common/auth.inteface';
 
 @Controller('auth/user')
 export class UserAuthController {
-  constructor(private readonly authService: UserAuthService) {}
+  // constructor(private readonly userAuthService: UserAuthService) {}
+  private readonly userAuthService: UserAuthService;
 
-  @HttpCode(HttpStatus.OK)
+  constructor(userAuthService: UserAuthService) {
+    this.userAuthService = userAuthService;
+  }
+
   @UseGuards(UserLocalAuthGuard)
   @Post('login')
   async login(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginReturnUser> {
-    return await this.authService.generateToken(request.user, response);
+  ): Promise<LoginReturn<User>> {
+    return await this.userAuthService.generateToken(request.user, response);
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('signin')
   async signin(@Body() dto: CreateEntityDTO) {
-    return await this.authService.signup(dto);
+    return await this.userAuthService.signup(dto);
   }
 
   @UseGuards(JwtAuthRefreshGuard)
@@ -43,7 +48,7 @@ export class UserAuthController {
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return await this.authService.generateToken(request.user, response);
+    return await this.userAuthService.generateToken(request.user, response);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -12,22 +12,22 @@ import {
 import { AdminAuthService } from './admin-auth.service';
 import { AdminLocalAuthGuard } from './guards/admin-local-auth.guard';
 import type { Request as ExpRequest, Response } from 'express';
-import { LoginReturnAdmin } from '../common/auth.inteface';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { JwtRefreshStrategy } from '../common/strategies/jwt-refresh-strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Admin } from 'src/admin/interface/admin-interface';
+import { LoginReturn } from '../common/auth.inteface';
 
 @Controller('auth/admin')
 export class AdminAuthController {
   constructor(private readonly adminAuthService: AdminAuthService) {}
 
-  @HttpCode(HttpStatus.OK)
   @UseGuards(AdminLocalAuthGuard)
   @Post('login')
   async login(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginReturnAdmin> {
+  ): Promise<LoginReturn<Admin>> {
     return await this.adminAuthService.generateToken(request.user, response);
   }
 

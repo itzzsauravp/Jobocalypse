@@ -1,6 +1,3 @@
-import { Admin } from 'src/admin/interface/admin-interface';
-import { User } from 'src/user/interface/user-interface';
-
 export interface TokenPayload {
   sub: string;
   email: string;
@@ -8,16 +5,10 @@ export interface TokenPayload {
   lastName: string;
 }
 
-export interface LoginReturnUser {
+export interface LoginReturn<T> {
   access_token: string;
   refresh_token: string;
-  user: User;
-}
-
-export interface LoginReturnAdmin {
-  access_token: string;
-  refresh_token: string;
-  admin: Admin;
+  data: T;
 }
 
 export interface UserPropOnRequest {

@@ -20,8 +20,10 @@ model Firm {
   location String
   type String
   establishedOn DateTime 
-  phoneNumber String
-  email String
+  phoneNumber String @unique
+  email String @unique
+  password String 
+  refreshToken String?
   isVerified Boolean @default(false)
   isDeleted Boolean @default(false)
 

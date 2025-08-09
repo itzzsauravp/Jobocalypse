@@ -46,7 +46,7 @@ export class AdminAuthService {
       return admin;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Failed to create admin');
+      throw new InternalServerErrorException('Failed to create account');
     }
   }
 
@@ -98,7 +98,7 @@ export class AdminAuthService {
     return {
       access_token,
       refresh_token,
-      admin: updatedAdmin,
+      data: updatedAdmin,
     };
   }
 }

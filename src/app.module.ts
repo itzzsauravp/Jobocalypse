@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { AdminModule } from './admin/admin.module';
+import { FirmModule } from './firm/firm.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AdminModule } from './admin/admin.module';
     }),
     PrismaModule,
     AdminModule,
+    FirmModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseInterceptor, AllExceptionsFilter],

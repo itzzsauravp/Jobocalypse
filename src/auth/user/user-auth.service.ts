@@ -47,7 +47,7 @@ export class UserAuthService {
       return user;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Failed to create user');
+      throw new InternalServerErrorException('Failed to create accont');
     }
   }
 
@@ -98,7 +98,7 @@ export class UserAuthService {
     return {
       access_token,
       refresh_token,
-      user: updatedUser,
+      data: updatedUser,
     };
   }
 }
