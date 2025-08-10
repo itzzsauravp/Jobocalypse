@@ -16,7 +16,7 @@ import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { JwtRefreshStrategy } from '../common/strategies/jwt-refresh-strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Admin } from 'src/admin/interface/admin-interface';
-import { LoginReturn } from '../common/auth.inteface';
+import { LoginReturn } from '../common/auth.interface';
 
 @Controller('auth/admin')
 export class AdminAuthController {
@@ -32,8 +32,8 @@ export class AdminAuthController {
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post('signin')
-  async signin(@Body() dto: CreateEntityDTO) {
+  @Post('signup')
+  async signup(@Body() dto: CreateEntityDTO) {
     return await this.adminAuthService.signup(dto);
   }
 
@@ -48,7 +48,7 @@ export class AdminAuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('test')
-  test() {
-    return { admin_auth_status: true };
+  test(@Request() request: ExpRequest) {
+    return { admin_auth_status: true, type: request.user.type };
   }
 }

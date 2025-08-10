@@ -6,7 +6,10 @@ export interface User {
   lastName: string;
   address?: string | null;
   phoneNumber?: string | null;
+  worksAtID?: string | null;
   isVerified: boolean;
   refreshToken?: string | null;
   isDeleted: boolean;
+
+  type: 'admin' | 'user' | 'firm';
 }

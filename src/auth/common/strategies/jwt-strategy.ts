@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request as ExpRequest } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { TokenPayload, UserPropOnRequest } from '../auth.inteface';
+import { TokenPayload } from '../auth.interface';
+import { User } from 'src/user/interface/user-interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -19,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  validate(payload: TokenPayload): UserPropOnRequest {
-    return { id: payload.sub, email: payload.email };
+  validate(payload: TokenPayload): Partial<User> {
+    return { id: payload.sub, email: payload.email, type: payload.type };
   }
 }

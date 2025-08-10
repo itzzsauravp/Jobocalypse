@@ -79,4 +79,46 @@ export class FirmService {
     });
     return firm;
   }
+
+  async updateFirmDeleteStatus(
+    id: string,
+    status: boolean,
+  ): Promise<Omit<Firm, 'type'>> {
+    const firm = await this.prismaService.firm.update({
+      where: {
+        id,
+      },
+      data: {
+        isDeleted: status,
+      },
+    });
+    return firm;
+  }
+
+  async updateFrimVerificationStatus(
+    id: string,
+    status: boolean,
+  ): Promise<Omit<Firm, 'type'>> {
+    const firm = await this.prismaService.firm.update({
+      where: {
+        id,
+      },
+      data: {
+        isVerified: status,
+      },
+    });
+    return firm;
+  }
+
+  async revokeFirmAccess(id: string): Promise<Omit<Firm, 'type'>> {
+    const firm = await this.prismaService.firm.update({
+      where: {
+        id,
+      },
+      data: {
+        refreshToken: null,
+      },
+    });
+    return firm;
+  }
 }

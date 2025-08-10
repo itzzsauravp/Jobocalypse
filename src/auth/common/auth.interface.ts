@@ -3,6 +3,7 @@ export interface TokenPayload {
   email: string;
   firstName: string;
   lastName: string;
+  type: 'user' | 'admin' | 'firm';
 }
 
 export interface LoginReturn<T> {
@@ -14,4 +15,5 @@ export interface LoginReturn<T> {
 export interface UserPropOnRequest {
   id: string;
   email: string;
+  type: 'user' | 'admin' | 'firm';
 }

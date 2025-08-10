@@ -1,5 +1,5 @@
 import 'express';
-import { User } from 'src/auth/common/auth.inteface';
+import { User } from 'src/user/interface/user-interface';
 
 declare module 'express' {
   export interface Request {

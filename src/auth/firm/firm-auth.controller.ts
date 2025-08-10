@@ -10,12 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirmAuthService } from './firm-auth.service';
-import { LoginReturn } from '../common/auth.inteface';
+import { LoginReturn } from '../common/auth.interface';
 import { Firm } from 'src/firm/interface/firm-interface';
 import type { Request as ExpRequest, Response } from 'express';
 import { CreateFirmDTO } from 'src/firm/dtos/create-firm.dto';
 import { FirmLocalAuthGuard } from './guards/firm-local-auth.guard';
-import { JwtRefreshStrategy } from '../common/strategies/jwt-refresh-strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
 
@@ -33,8 +32,8 @@ export class FirmAuthController {
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post('signin')
-  async signin(@Body() dto: CreateFirmDTO): Promise<Firm> {
+  @Post('signup')
+  async signup(@Body() dto: CreateFirmDTO): Promise<Firm> {
     return await this.firmAuthService.signup(dto);
   }
 

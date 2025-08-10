@@ -57,6 +57,7 @@ export class AdminAuthService {
       email: admin.email,
       firstName: admin.firstName,
       lastName: admin.lastName,
+      type: 'admin',
     };
 
     const access_token = this.jwtService.sign(payload);

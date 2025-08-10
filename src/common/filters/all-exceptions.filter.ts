@@ -10,6 +10,13 @@ import { Request, Response } from 'express';
 @Catch()
 export class AllExceptionsFilter<T> implements ExceptionFilter {
   catch(exception: T, host: ArgumentsHost) {
+    console.log(
+      '+++++++++++++++++++++ Please Implement try catch for all the services. ThankYou ++++++++++++++++++++++',
+    );
+    console.log(exception);
+    console.log(
+      '+++++++++++++++++++++ Please Implement try catch for all the services. ThankYou ++++++++++++++++++++++',
+    );
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();

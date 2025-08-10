@@ -8,12 +8,12 @@ import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllUsers(): Promise<Array<User>> {
+  async findAllUsers(): Promise<Array<Omit<User, 'type'>>> {
     const users = await this.prismaService.user.findMany();
     return users;
   }
 
-  async findUserByID(id: string): Promise<User> {
+  async findUserByID(id: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
@@ -23,7 +23,7 @@ export class UserService {
     return user;
   }
 
-  async findUserByEmail(email: string): Promise<User> {
+  async findUserByEmail(email: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.findUnique({
       where: {
         email,
@@ -42,7 +42,7 @@ export class UserService {
     return user ? true : false;
   }
 
-  async createUser(dto: CreateEntityDTO): Promise<User> {
+  async createUser(dto: CreateEntityDTO): Promise<Omit<User, 'type'>> {
     const hashedPassword = await hash(dto.password, 10);
     const user = await this.prismaService.user.create({
       data: {
@@ -57,7 +57,7 @@ export class UserService {
     return user;
   }
 
-  async softDeleteUser(id: string) {
+  async softDeleteUser(id: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -69,12 +69,57 @@ export class UserService {
     return user;
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User> {
+  async updateUser(
+    id: string,
+    data: Partial<User>,
+  ): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.update({
       where: {
         id,
       },
       data,
+    });
+    return user;
+  }
+
+  async updateUserDeleteStatus(
+    id: string,
+    status: boolean,
+  ): Promise<Omit<User, 'type'>> {
+    const user = await this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data: {
+        isDeleted: status,
+      },
+    });
+    return user;
+  }
+
+  async updateUserVerificationStatus(
+    id: string,
+    status: boolean,
+  ): Promise<Omit<User, 'type'>> {
+    const user = await this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data: {
+        isVerified: status,
+      },
+    });
+    return user;
+  }
+
+  async revokeUserAccess(id: string): Promise<Omit<User, 'type'>> {
+    const user = await this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data: {
+        refreshToken: null,
+      },
     });
     return user;
   }

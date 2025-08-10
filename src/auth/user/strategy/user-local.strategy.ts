@@ -14,7 +14,7 @@ export class UserLocalStrategy extends PassportStrategy(
       usernameField: 'email',
     });
   }
-  async validate(email: string, password: string): Promise<User> {
+  async validate(email: string, password: string): Promise<Omit<User, 'type'>> {
     return await this.userAuthService.validateUser(email, password);
   }
 }

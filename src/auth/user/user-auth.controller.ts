@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { UserLocalAuthGuard } from './guards/user-local-auth.guard';
 import { User } from 'src/user/interface/user-interface';
-import { LoginReturn } from '../common/auth.inteface';
+import { LoginReturn } from '../common/auth.interface';
 
 @Controller('auth/user')
 export class UserAuthController {
@@ -32,13 +32,13 @@ export class UserAuthController {
   async login(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginReturn<User>> {
+  ): Promise<LoginReturn<Omit<User, 'type'>>> {
     return await this.userAuthService.generateToken(request.user, response);
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post('signin')
-  async signin(@Body() dto: CreateEntityDTO) {
+  @Post('signup')
+  async signup(@Body() dto: CreateEntityDTO) {
     return await this.userAuthService.signup(dto);
   }
 
@@ -53,7 +53,7 @@ export class UserAuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('test')
-  test() {
-    return { user_auth_status: true };
+  test(@Request() request: ExpRequest) {
+    return { user_auth_status: true, request: request.user };
   }
 }
