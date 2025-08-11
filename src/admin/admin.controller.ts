@@ -18,6 +18,8 @@ import { FirmService } from 'src/firm/firm.service';
 import { UserService } from 'src/user/user.service';
 import { AdminService } from './admin.service';
 import { UpdateAdminDTO } from './dtos/update-admin.dto';
+import { Vacancy } from 'src/vacancy/interface/vacancy.interface';
+import { VacancyService } from 'src/vacancy/vacancy.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('admin')
@@ -26,25 +28,30 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly userService: UserService,
-    private readonly frimService: FirmService,
+    private readonly firmService: FirmService,
+    private readonly vacancyService: VacancyService,
   ) {}
 
   // ========================= ADMIN ROUTES ===================================
   @Get()
-  async getAdminProfile(@Request() request: ExpRequest) {
+  async getAdminProfile(
+    @Request() request: ExpRequest,
+  ): ReturnType<typeof this.adminService.findAdminByID> {
     return await this.adminService.findAdminByID(request.user.id);
   }
 
-  @Patch('update')
+  @Patch()
   async updateAdmin(
     @Body() dto: UpdateAdminDTO,
     @Request() request: ExpRequest,
-  ) {
+  ): ReturnType<typeof this.adminService.udpateAdmin> {
     return await this.adminService.udpateAdmin(request.user.id, dto);
   }
 
-  @Delete('delete')
-  async deleteAdmin(@Request() request: ExpRequest) {
+  @Delete()
+  async deleteAdmin(
+    @Request() request: ExpRequest,
+  ): ReturnType<typeof this.adminService.hardDeleteAdmin> {
     return await this.adminService.hardDeleteAdmin(request.user.id);
   }
 
@@ -55,33 +62,37 @@ export class AdminController {
   async udpateVerifcationStatusUser(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ) {
+  ): ReturnType<typeof this.userService.updateUserVerificationStatus> {
     return await this.userService.updateUserVerificationStatus(id, status);
   }
 
   @ResponseMessage('deletion status updated')
-  @Post('user/:id/delete')
+  @Delete('user/:id')
   async softDeleteUser(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ) {
+  ): ReturnType<typeof this.userService.updateUserDeleteStatus> {
     return await this.userService.updateUserDeleteStatus(id, status);
   }
 
   @ResponseMessage('access revoked')
   @Post('user/:id/access-revoke')
-  async revokeAccessUser(@Param('id') id: string) {
+  async revokeAccessUser(
+    @Param('id') id: string,
+  ): ReturnType<typeof this.userService.revokeUserAccess> {
     return await this.userService.revokeUserAccess(id);
   }
 
   @Get('user/all')
-  findAllUsers() {
-    return this.userService.findAllUsers();
+  async findAllUsers(): ReturnType<typeof this.userService.findAllUsers> {
+    return await this.userService.findAllUsers();
   }
 
   @Get('user/:id')
-  findUserByID(@Param('id') id: string) {
-    return this.userService.findUserByID(id);
+  async findUserByID(
+    @Param('id') id: string,
+  ): ReturnType<typeof this.userService.findUserByID> {
+    return await this.userService.findUserByID(id);
   }
 
   // ========================= FIRM ROUTES ===================================
@@ -91,32 +102,56 @@ export class AdminController {
   async updateVerificationStatusFirm(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ) {
-    return await this.frimService.updateFrimVerificationStatus(id, status);
+  ): ReturnType<typeof this.firmService.updateFrimVerificationStatus> {
+    return await this.firmService.updateFrimVerificationStatus(id, status);
   }
 
   @ResponseMessage('deletion status updated')
-  @Post('firm/:id/delete')
+  @Delete('firm/:id')
   async softDeleteFirm(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ) {
-    return await this.frimService.updateFirmDeleteStatus(id, status);
+  ): ReturnType<typeof this.firmService.updateFirmDeleteStatus> {
+    return await this.firmService.updateFirmDeleteStatus(id, status);
   }
 
   @ResponseMessage('access revoked')
   @Post('firm/:id/access-revoke')
-  async revokeAccessFirm(@Param('id') id: string) {
-    return await this.frimService.revokeFirmAccess(id);
-  }
-
-  @Get('firm/all')
-  findAllFrim() {
-    return this.frimService.findAllFirms();
+  async revokeAccessFirm(
+    @Param('id') id: string,
+  ): ReturnType<typeof this.firmService.revokeFirmAccess> {
+    return await this.firmService.revokeFirmAccess(id);
   }
 
   @Get('firm/:id')
-  findFirmByID(@Param('id') id: string) {
-    return this.frimService.findFirmByID(id);
+  findFirmByID(
+    @Param('id') id: string,
+  ): ReturnType<typeof this.firmService.findFirmByID> {
+    return this.firmService.findFirmByID(id);
+  }
+
+  @Get('firm/all')
+  async findAllFrim(): ReturnType<typeof this.firmService.findAllFirms> {
+    return await this.firmService.findAllFirms();
+  }
+  // ========================= VACANCY ROUTES ===================================
+
+  @Delete('vacancy/delete')
+  async deleteVacancy(@Param('id') id: string): Promise<Vacancy> {
+    return await this.vacancyService.deleteVacancy(id);
+  }
+
+  @Get('vacancy/all')
+  async findAllVacVacancy(): ReturnType<
+    typeof this.vacancyService.findAllVacancy
+  > {
+    return await this.vacancyService.findAllVacancy();
+  }
+
+  @Get('vacancy/:id')
+  findVacancyByID(
+    @Param('id') id: string,
+  ): ReturnType<typeof this.vacancyService.findVacancyByID> {
+    return this.vacancyService.findVacancyByID(id);
   }
 }

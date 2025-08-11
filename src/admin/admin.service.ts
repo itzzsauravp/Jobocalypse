@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Admin } from './interface/admin-interface';
+import { Admin } from './interface/admin.interface';
 import { hash } from 'bcryptjs';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 

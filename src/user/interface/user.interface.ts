@@ -1,3 +1,5 @@
+import { Role } from 'src/common/interfaces/role.inteface';
+
 export interface User {
   id: string;
   email: string;
@@ -11,5 +13,5 @@ export interface User {
   refreshToken?: string | null;
   isDeleted: boolean;
 
-  type: 'admin' | 'user' | 'firm';
+  type: Role;
 }

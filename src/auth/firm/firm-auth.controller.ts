@@ -10,8 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirmAuthService } from './firm-auth.service';
-import { LoginReturn } from '../common/auth.interface';
-import { Firm } from 'src/firm/interface/firm-interface';
 import type { Request as ExpRequest, Response } from 'express';
 import { CreateFirmDTO } from 'src/firm/dtos/create-firm.dto';
 import { FirmLocalAuthGuard } from './guards/firm-local-auth.guard';
@@ -27,13 +25,15 @@ export class FirmAuthController {
   async login(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginReturn<Firm>> {
+  ): ReturnType<typeof this.firmAuthService.generateToken> {
     return await this.firmAuthService.generateToken(request.user, response);
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('signup')
-  async signup(@Body() dto: CreateFirmDTO): Promise<Firm> {
+  async signup(
+    @Body() dto: CreateFirmDTO,
+  ): ReturnType<typeof this.firmAuthService.signup> {
     return await this.firmAuthService.signup(dto);
   }
 
@@ -42,7 +42,7 @@ export class FirmAuthController {
   async refresh(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ) {
+  ): ReturnType<typeof this.firmAuthService.generateToken> {
     return await this.firmAuthService.generateToken(request.user, response);
   }
 

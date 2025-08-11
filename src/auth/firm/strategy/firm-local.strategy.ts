@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { FirmAuthService } from '../firm-auth.service';
-import { Firm } from 'src/firm/interface/firm-interface';
+import { Firm } from 'src/firm/interface/firm.interface';
 
 @Injectable()
 export class FirmLocalStrategy extends PassportStrategy(

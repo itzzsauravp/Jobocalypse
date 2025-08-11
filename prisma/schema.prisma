@@ -14,6 +14,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum VACANCY_ENUM {
+  ON_SITE @map("on-site")
+  REMOTE @map("remote")
+}
+
 model Firm {
   id String @id @default(uuid()) @db.Uuid
   name String
@@ -53,6 +58,7 @@ model Vacancy {
   description String
   deadline DateTime
   tags String[]
+  type VACANCY_ENUM
   isActive Boolean @default(false)
 
   firmID String @db.Uuid

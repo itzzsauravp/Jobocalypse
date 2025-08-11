@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Firm } from './interface/firm-interface';
+import { Firm } from './interface/firm.interface';
 import { CreateFirmDTO } from './dtos/create-firm.dto';
 import { hash } from 'bcryptjs';
 

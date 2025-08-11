@@ -15,8 +15,6 @@ import type { Request as ExpRequest, Response } from 'express';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { JwtRefreshStrategy } from '../common/strategies/jwt-refresh-strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { Admin } from 'src/admin/interface/admin-interface';
-import { LoginReturn } from '../common/auth.interface';
 
 @Controller('auth/admin')
 export class AdminAuthController {
@@ -27,13 +25,15 @@ export class AdminAuthController {
   async login(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginReturn<Admin>> {
+  ): ReturnType<typeof this.adminAuthService.generateToken> {
     return await this.adminAuthService.generateToken(request.user, response);
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('signup')
-  async signup(@Body() dto: CreateEntityDTO) {
+  async signup(
+    @Body() dto: CreateEntityDTO,
+  ): ReturnType<typeof this.adminAuthService.signup> {
     return await this.adminAuthService.signup(dto);
   }
 
@@ -42,7 +42,7 @@ export class AdminAuthController {
   async refresh(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
-  ) {
+  ): ReturnType<typeof this.adminAuthService.generateToken> {
     return await this.adminAuthService.generateToken(request.user, response);
   }
 

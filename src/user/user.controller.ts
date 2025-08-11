@@ -21,22 +21,26 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async getUserProfile(@Request() request: ExpRequest) {
+  async getUserProfile(
+    @Request() request: ExpRequest,
+  ): ReturnType<typeof this.userService.findUserByID> {
     return await this.userService.findUserByID(request.user.id);
   }
 
-  @Patch('update')
+  @Patch()
   async updateUser(
     @Request() request: ExpRequest,
     @Body('data') data: UpdateUserDTO,
-  ) {
+  ): ReturnType<typeof this.userService.updateUser> {
     const user = await this.userService.findUserByID(request.user.id);
     const updatedData: UpdateUserDTO = Object.assign(user, data);
     return await this.userService.updateUser(request.user.id, updatedData);
   }
 
-  @Delete('delete')
-  async softDeleteUser(@Request() request: ExpRequest) {
+  @Delete()
+  async softDeleteUser(
+    @Request() request: ExpRequest,
+  ): ReturnType<typeof this.userService.softDeleteUser> {
     return this.userService.softDeleteUser(request.user.id);
   }
 }

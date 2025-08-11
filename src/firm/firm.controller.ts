@@ -21,22 +21,26 @@ export class FirmController {
   constructor(private readonly firmService: FirmService) {}
 
   @Get()
-  async getFirmProfile(@Request() request: ExpRequest) {
+  async getFirmProfile(
+    @Request() request: ExpRequest,
+  ): ReturnType<typeof this.firmService.findFirmByID> {
     return await this.firmService.findFirmByID(request.user.id);
   }
 
-  @Patch('update')
+  @Patch()
   async updateFirm(
     @Request() request: ExpRequest,
     @Body('data') data: UpdateFirmDTO,
-  ) {
+  ): ReturnType<typeof this.firmService.udpateFirm> {
     const firm = await this.firmService.findFirmByID(request.user.id);
     const updatedData: UpdateFirmDTO = Object.assign(firm, data);
     return await this.firmService.udpateFirm(request.user.id, updatedData);
   }
 
-  @Delete('delete')
-  async softDeleteFirm(@Request() request: ExpRequest) {
+  @Delete()
+  async softDeleteFirm(
+    @Request() request: ExpRequest,
+  ): ReturnType<typeof this.firmService.softDeleteFrim> {
     return this.firmService.softDeleteFrim(request.user.id);
   }
 }
