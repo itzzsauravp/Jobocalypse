@@ -30,7 +30,7 @@ export class UserController {
   @Patch()
   async updateUser(
     @Request() request: ExpRequest,
-    @Body('data') data: UpdateUserDTO,
+    @Body() data: UpdateUserDTO,
   ): ReturnType<typeof this.userService.updateUser> {
     const user = await this.userService.findUserByID(request.user.id);
     const updatedData: UpdateUserDTO = Object.assign(user, data);

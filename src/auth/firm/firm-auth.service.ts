@@ -56,6 +56,7 @@ export class FirmAuthService {
       sub: firm.id,
       email: firm.email,
       name: firm.name,
+      type: 'firm',
     };
 
     const access_token = this.jwtService.sign(payload);

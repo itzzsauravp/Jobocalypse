@@ -23,9 +23,9 @@ export class CreateEntityDTO {
 
   @IsOptional()
   @IsString()
-  address?: string;
+  address: string;
 
   @IsOptional()
   @IsString()
-  phoneNumber?: string;
+  phoneNumber: string;
 }

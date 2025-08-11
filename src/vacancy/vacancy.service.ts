@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Vacancy } from './interface/vacancy.interface';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';
@@ -22,6 +26,14 @@ export class VacancyService {
     return vacancy;
   }
 
+  async listFirmsVacancies(id: string): Promise<Array<Vacancy>> {
+    return await this.prismaService.vacancy.findMany({
+      where: {
+        firmID: id,
+      },
+    });
+  }
+
   async createVacancy(id: string, dto: CreateVacancyDTO): Promise<Vacancy> {
     const vacancy = await this.prismaService.vacancy.create({
       data: {
@@ -30,27 +42,42 @@ export class VacancyService {
         description: dto.description,
         deadline: dto.deadline,
         tags: dto.tags,
+        type: dto.type,
       },
     });
     return vacancy;
   }
 
-  async updateVacancy(id: string, dto: UpdateVacancyDTO) {
-    const vacancy = await this.prismaService.vacancy.update({
+  async updateVacancy(firmID: string, id: string, dto: UpdateVacancyDTO) {
+    const vacancyToUpdate = await this.findVacancyByID(id);
+    if (firmID !== vacancyToUpdate.firmID) {
+      throw new UnauthorizedException();
+    }
+    return await this.prismaService.vacancy.update({
       where: {
         id,
       },
       data: dto,
     });
-    return vacancy;
   }
 
-  async deleteVacancy(id: string): Promise<Vacancy> {
-    const vacancy = await this.prismaService.vacancy.delete({
+  async deleteVacancyAdmin(id: string): Promise<Vacancy> {
+    return await this.prismaService.vacancy.delete({
       where: {
         id,
       },
     });
-    return vacancy;
+  }
+
+  async deleteVacancy(id: string, idFromRequest: string): Promise<Vacancy> {
+    const vacancyToDelte = await this.findVacancyByID(id);
+    if (idFromRequest !== vacancyToDelte.firmID) {
+      throw new UnauthorizedException();
+    }
+    return await this.prismaService.vacancy.delete({
+      where: {
+        id,
+      },
+    });
   }
 }

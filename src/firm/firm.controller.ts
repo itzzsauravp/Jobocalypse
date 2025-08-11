@@ -30,7 +30,7 @@ export class FirmController {
   @Patch()
   async updateFirm(
     @Request() request: ExpRequest,
-    @Body('data') data: UpdateFirmDTO,
+    @Body() data: UpdateFirmDTO,
   ): ReturnType<typeof this.firmService.udpateFirm> {
     const firm = await this.firmService.findFirmByID(request.user.id);
     const updatedData: UpdateFirmDTO = Object.assign(firm, data);

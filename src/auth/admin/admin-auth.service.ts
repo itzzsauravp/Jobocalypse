@@ -59,7 +59,6 @@ export class AdminAuthService {
       lastName: admin.lastName,
       type: 'admin',
     };
-
     const access_token = this.jwtService.sign(payload);
     const refresh_token = this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow('JWT_REFRESH_TOKEN_SECRET'),

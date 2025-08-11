@@ -49,6 +49,8 @@ export class AdminService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         email: dto.email,
+        address: dto.address ?? null,
+        phoneNumber: dto.phoneNumber ?? null,
         password: hashedPassword,
       },
     });

@@ -40,6 +40,7 @@ export class AdminController {
     return await this.adminService.findAdminByID(request.user.id);
   }
 
+  @ResponseMessage('admin updated successfully')
   @Patch()
   async updateAdmin(
     @Body() dto: UpdateAdminDTO,
@@ -48,6 +49,7 @@ export class AdminController {
     return await this.adminService.udpateAdmin(request.user.id, dto);
   }
 
+  @ResponseMessage('admin delete successfully')
   @Delete()
   async deleteAdmin(
     @Request() request: ExpRequest,
@@ -136,9 +138,9 @@ export class AdminController {
   }
   // ========================= VACANCY ROUTES ===================================
 
-  @Delete('vacancy/delete')
+  @Delete('vacancy/:id')
   async deleteVacancy(@Param('id') id: string): Promise<Vacancy> {
-    return await this.vacancyService.deleteVacancy(id);
+    return await this.vacancyService.deleteVacancyAdmin(id);
   }
 
   @Get('vacancy/all')

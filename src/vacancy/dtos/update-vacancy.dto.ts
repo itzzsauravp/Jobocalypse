@@ -1,6 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
-import { VacancyEnum } from 'src/common/interfaces/vacancy-type.enum';
+import {
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { VACANCY_ENUM } from 'generated/prisma';
 
 export class UpdateVacancyDTO {
   @IsOptional()
@@ -17,11 +24,15 @@ export class UpdateVacancyDTO {
   deadline: Date;
 
   @IsOptional()
-  @IsEnum(VacancyEnum)
-  type: VacancyEnum;
+  @IsEnum(VACANCY_ENUM)
+  type: VACANCY_ENUM;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   tags: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  isActive: boolean;
 }
