@@ -7,4 +7,6 @@ export interface Admin {
   address?: string | null;
   phoneNumber?: string | null;
   refreshToken?: string | null;
+  profilePic: string | null;
+  publicID: string | null;
 }

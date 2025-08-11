@@ -12,6 +12,8 @@ export interface User {
   isVerified: boolean;
   refreshToken?: string | null;
   isDeleted: boolean;
+  profilePic: string | null;
+  publicID: string | null;
 
-  type: Role;
+  type: Role; // where dafaq did this come from (big mistake chat big mistake)
 }

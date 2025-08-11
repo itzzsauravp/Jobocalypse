@@ -10,6 +10,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { AdminModule } from './admin/admin.module';
 import { FirmModule } from './firm/firm.module';
 import { VacancyModule } from './vacancy/vacancy.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { VacancyModule } from './vacancy/vacancy.module';
     AdminModule,
     FirmModule,
     VacancyModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, ResponseInterceptor, AllExceptionsFilter],

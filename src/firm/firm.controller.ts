@@ -3,9 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Patch,
+  Post,
   Request,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/common/guards/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -13,12 +17,18 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 import type { Request as ExpRequest } from 'express';
 import { FirmService } from './firm.service';
 import { UpdateFirmDTO } from './dtos/update-firm.dto';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('firm')
 @Controller('firm')
 export class FirmController {
-  constructor(private readonly firmService: FirmService) {}
+  constructor(
+    private readonly firmService: FirmService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get()
   async getFirmProfile(
@@ -42,5 +52,38 @@ export class FirmController {
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.firmService.softDeleteFrim> {
     return this.firmService.softDeleteFrim(request.user.id);
+  }
+
+  @ResponseMessage('profile picture updated successfully')
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() request: ExpRequest,
+  ) {
+    const firm = await this.firmService.findFirmByID(request.user.id);
+    const uploadedResult = await this.cloudinaryService.uploadAvatar(
+      file,
+      'admin',
+      request.user.id,
+      firm.profilePic ? true : false,
+    );
+    const updatedFirm = await this.firmService.udpateFirm(request.user.id, {
+      profilePic: uploadedResult.secure_url as string,
+      publicID: uploadedResult.public_id as string,
+    });
+    return updatedFirm;
+  }
+
+  @ResponseMessage('avatar removed sucessfully')
+  @Delete('avatar')
+  async removeAvatar(@Request() request: ExpRequest) {
+    const firm = await this.firmService.findFirmByID(request.user.id);
+    const result = await this.cloudinaryService.deleteImage(
+      firm.publicID as string,
+    );
+    if (result?.data.result !== 'ok')
+      throw new InternalServerErrorException('Error while removing avatar');
+    return result;
   }
 }

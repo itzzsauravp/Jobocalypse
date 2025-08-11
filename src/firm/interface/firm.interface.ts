@@ -10,4 +10,6 @@ export interface Firm {
   refreshToken?: string | null;
   isVerified: boolean;
   isDeleted: boolean;
+  profilePic: string | null;
+  publicID: string | null;
 }

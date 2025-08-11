@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { FirmController } from './firm.controller';
 import { FirmService } from './firm.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CloudinaryModule],
   controllers: [FirmController],
   providers: [FirmService],
   exports: [FirmService],

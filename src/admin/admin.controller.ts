@@ -3,11 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   Patch,
   Post,
   Request,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import type { Request as ExpRequest } from 'express';
 import { JwtAuthGuard } from 'src/auth/common/guards/jwt-auth.guard';
@@ -20,6 +23,8 @@ import { AdminService } from './admin.service';
 import { UpdateAdminDTO } from './dtos/update-admin.dto';
 import { Vacancy } from 'src/vacancy/interface/vacancy.interface';
 import { VacancyService } from 'src/vacancy/vacancy.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('admin')
@@ -30,6 +35,7 @@ export class AdminController {
     private readonly userService: UserService,
     private readonly firmService: FirmService,
     private readonly vacancyService: VacancyService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   // ========================= ADMIN ROUTES ===================================
@@ -55,6 +61,39 @@ export class AdminController {
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.adminService.hardDeleteAdmin> {
     return await this.adminService.hardDeleteAdmin(request.user.id);
+  }
+
+  @ResponseMessage('profile picture updated successfully')
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() request: ExpRequest,
+  ) {
+    const admin = await this.adminService.findAdminByID(request.user.id);
+    const uploadedResult = await this.cloudinaryService.uploadAvatar(
+      file,
+      'admin',
+      request.user.id,
+      admin.profilePic ? true : false,
+    );
+    const updatedAdmin = await this.adminService.udpateAdmin(request.user.id, {
+      profilePic: uploadedResult.secure_url as string,
+      publicID: uploadedResult.public_id as string,
+    });
+    return updatedAdmin;
+  }
+
+  @ResponseMessage('avatar removed sucessfully')
+  @Delete('avatar')
+  async removeAvatar(@Request() request: ExpRequest) {
+    const admin = await this.adminService.findAdminByID(request.user.id);
+    const result = await this.cloudinaryService.deleteImage(
+      admin.publicID as string,
+    );
+    if (result?.data.result !== 'ok')
+      throw new InternalServerErrorException('Error while removing avatar');
+    return result;
   }
 
   // ========================= USER ROUTES ===================================

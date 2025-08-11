@@ -31,7 +31,9 @@ model Firm {
   refreshToken String?
   isVerified Boolean @default(false)
   isDeleted Boolean @default(false)
-
+  profilePic String?
+  publicID String?
+  
   vacancies Vacancy[]
   employees User[]
 }
@@ -47,6 +49,8 @@ model User {
   refreshToken String?
   isVerified Boolean @default(false)
   isDeleted Boolean @default(false)
+  profilePic String?
+  publicID String?
 
   worksAtID String? @db.Uuid
   worksAt Firm? @relation(fields: [worksAtID], references: [id]) 
@@ -74,4 +78,7 @@ model Admin {
   address String?
   phoneNumber String?
   refreshToken String?
+  profilePic String?
+  publicID String?
+
 }
