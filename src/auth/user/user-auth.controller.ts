@@ -15,6 +15,8 @@ import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { UserLocalAuthGuard } from './guards/user-local-auth.guard';
+import { Throttle } from '@nestjs/throttler';
+import { LOGIN, SIGNUP, TEST } from 'src/common/constants/throttler-settings';
 
 @Controller('auth/user')
 export class UserAuthController {
@@ -25,6 +27,7 @@ export class UserAuthController {
     this.userAuthService = userAuthService;
   }
 
+  @Throttle(LOGIN)
   @UseGuards(UserLocalAuthGuard)
   @Post('login')
   async login(
@@ -34,6 +37,7 @@ export class UserAuthController {
     return await this.userAuthService.generateToken(request.user, response);
   }
 
+  @Throttle(SIGNUP)
   @HttpCode(HttpStatus.CREATED)
   @Post('signup')
   async signup(
@@ -42,6 +46,7 @@ export class UserAuthController {
     return await this.userAuthService.signup(dto);
   }
 
+  @Throttle(LOGIN)
   @UseGuards(JwtAuthRefreshGuard)
   @Post('refresh')
   async refresh(
@@ -51,6 +56,7 @@ export class UserAuthController {
     return await this.userAuthService.generateToken(request.user, response);
   }
 
+  @Throttle(TEST)
   @UseGuards(JwtAuthGuard)
   @Get('test')
   test(@Request() request: ExpRequest) {

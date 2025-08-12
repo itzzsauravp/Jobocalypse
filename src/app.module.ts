@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -11,8 +11,9 @@ import { AdminModule } from './admin/admin.module';
 import { FirmModule } from './firm/firm.module';
 import { VacancyModule } from './vacancy/vacancy.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 
 @Module({
   imports: [
@@ -26,19 +27,23 @@ import { APP_GUARD } from '@nestjs/core';
     FirmModule,
     VacancyModule,
     CloudinaryModule,
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 5,
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => [
+        {
+          ttl: configService.getOrThrow<number>('THROTTLE_TTL_IN_SEC') * 1000,
+          limit: configService.getOrThrow<number>('THROTTLE_LIMIT'),
+        },
+      ],
+    }),
   ],
   controllers: [AppController],
   providers: [
     AppService,
     ResponseInterceptor,
     AllExceptionsFilter,
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: CustomThrottlerGuard },
   ],
 })
 export class AppModule {}

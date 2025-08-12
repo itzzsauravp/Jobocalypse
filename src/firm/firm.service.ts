@@ -84,6 +84,36 @@ export class FirmService {
     return firm;
   }
 
+  async bulkSoftDeleteFirm(
+    ids: Array<string>,
+    status: boolean,
+  ): Promise<string> {
+    const result = await this.prismaService.firm.updateMany({
+      where: {
+        id: { in: ids },
+      },
+      data: {
+        isDeleted: true,
+      },
+    });
+    return `${result.count} firms deletion status set to ${status}`;
+  }
+
+  async bulkUpdateFirmVerficationStatus(
+    ids: Array<string>,
+    status: boolean,
+  ): Promise<string> {
+    const result = await this.prismaService.firm.updateMany({
+      where: {
+        id: { in: ids },
+      },
+      data: {
+        isVerified: status,
+      },
+    });
+    return `${result.count} firms verification set to ${status}`;
+  }
+
   async udpateFirm(id: string, data: Partial<Firm>) {
     const firm = await this.prismaService.firm.update({
       where: {

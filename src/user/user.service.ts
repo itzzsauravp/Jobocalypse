@@ -85,6 +85,36 @@ export class UserService {
     return user;
   }
 
+  async bulkSoftDeleteUser(
+    ids: Array<string>,
+    status: boolean,
+  ): Promise<string> {
+    const result = await this.prismaService.user.updateMany({
+      where: {
+        id: { in: ids },
+      },
+      data: {
+        isDeleted: true,
+      },
+    });
+    return `${result.count} users deletion status set to ${status}`;
+  }
+
+  async bulkUpdateUserVerficationStatus(
+    ids: Array<string>,
+    status: boolean,
+  ): Promise<string> {
+    const result = await this.prismaService.user.updateMany({
+      where: {
+        id: { in: ids },
+      },
+      data: {
+        isVerified: status,
+      },
+    });
+    return `${result.count} users verification set to ${status}`;
+  }
+
   async updateUser(
     id: string,
     data: Partial<User>,

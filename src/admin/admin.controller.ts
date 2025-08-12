@@ -100,6 +100,22 @@ export class AdminController {
 
   // ========================= USER ROUTES ===================================
 
+  @Delete('user/delete')
+  async bulkDeleteUsers(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.userService.bulkSoftDeleteUser> {
+    return this.userService.bulkSoftDeleteUser(ids, status);
+  }
+
+  @Post('user/verification')
+  async bulkUpdateUserVerificationStatus(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.userService.bulkUpdateUserVerficationStatus> {
+    return this.userService.bulkUpdateUserVerficationStatus(ids, status);
+  }
+
   @ResponseMessage('verification status updated')
   @Post('user/:id/verification')
   async udpateVerifcationStatusUser(
@@ -141,6 +157,22 @@ export class AdminController {
   }
 
   // ========================= FIRM ROUTES ===================================
+
+  @Delete('firm/delete')
+  async bulkDeleteFirms(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.firmService.bulkSoftDeleteFirm> {
+    return this.firmService.bulkSoftDeleteFirm(ids, status);
+  }
+
+  @Post('firm/verification')
+  async bulkUpdateFirmVerificationStatus(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.firmService.bulkUpdateFirmVerficationStatus> {
+    return this.firmService.bulkUpdateFirmVerficationStatus(ids, status);
+  }
 
   @ResponseMessage('verification status updated')
   @Post('firm/:id/verification')
