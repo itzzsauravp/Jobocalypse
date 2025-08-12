@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UploadedFile,
   UseGuards,
@@ -25,6 +26,7 @@ import { Vacancy } from 'src/vacancy/interface/vacancy.interface';
 import { VacancyService } from 'src/vacancy/vacancy.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('admin')
@@ -125,8 +127,10 @@ export class AdminController {
   }
 
   @Get('user/all')
-  async findAllUsers(): ReturnType<typeof this.userService.findAllUsers> {
-    return await this.userService.findAllUsers();
+  async findAllUsers(
+    @Query() dto: PaginationDTO,
+  ): ReturnType<typeof this.userService.findAllUsers> {
+    return await this.userService.findAllUsers(dto);
   }
 
   @Get('user/:id')
@@ -172,8 +176,10 @@ export class AdminController {
   }
 
   @Get('firm/all')
-  async findAllFrim(): ReturnType<typeof this.firmService.findAllFirms> {
-    return await this.firmService.findAllFirms();
+  async findAllFrim(
+    @Query() dto: PaginationDTO,
+  ): ReturnType<typeof this.firmService.findAllFirms> {
+    return await this.firmService.findAllFirms(dto);
   }
   // ========================= VACANCY ROUTES ===================================
 
@@ -183,10 +189,10 @@ export class AdminController {
   }
 
   @Get('vacancy/all')
-  async findAllVacVacancy(): ReturnType<
-    typeof this.vacancyService.findAllVacancy
-  > {
-    return await this.vacancyService.findAllVacancy();
+  async findAllVacVacancy(
+    @Query() dto: PaginationDTO,
+  ): ReturnType<typeof this.vacancyService.findAllVacancy> {
+    return await this.vacancyService.findAllVacancy(dto);
   }
 
   @Get('vacancy/:id')

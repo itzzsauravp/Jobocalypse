@@ -3,14 +3,28 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Firm } from './interface/firm.interface';
 import { CreateFirmDTO } from './dtos/create-firm.dto';
 import { hash } from 'bcryptjs';
+import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 
 @Injectable()
 export class FirmService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllFirms(): Promise<Array<Firm>> {
-    const frims = await this.prismaService.firm.findMany();
-    return frims;
+  async findAllFirms(dto: PaginationDTO): Promise<PaginatedData<Array<Firm>>> {
+    const { limit, page } = dto;
+    const skip = (page - 1) * limit;
+    const firms = await this.prismaService.firm.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+    const totalCount = await this.prismaService.firm.count();
+    return {
+      data: firms,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
   }
 
   async findFirmByID(id: string): Promise<Firm> {

@@ -3,14 +3,30 @@ import { hash } from 'bcryptjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from './interface/user.interface';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
+import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllUsers(): Promise<Array<Omit<User, 'type'>>> {
-    const users = await this.prismaService.user.findMany();
-    return users;
+  async findAllUsers(
+    dto: PaginationDTO,
+  ): Promise<PaginatedData<Array<Omit<User, 'type'>>>> {
+    const { page, limit } = dto;
+    const skip = (page - 1) * limit;
+    const users = await this.prismaService.user.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+    const totalCount = await this.prismaService.user.count();
+    return {
+      data: users,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
   }
 
   async findUserByID(id: string): Promise<Omit<User, 'type'>> {

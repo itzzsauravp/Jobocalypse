@@ -5,6 +5,7 @@ import { configureGlobalExceptionFilters } from './config/global-exception-filte
 import { configureGlobalValidationPipe } from './config/global-validation-pipes';
 import { configureGlobalMiddlware } from './config/global-middleware';
 import { configureSwagger } from './config/swagger';
+import { configureGlobalGuards } from './config/global-guards';
 
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +15,7 @@ export async function bootstrap() {
   configureGlobalValidationPipe(app);
   configureGlobalInterceptors(app);
   configureGlobalExceptionFilters(app);
+  configureGlobalGuards(app);
 
   await app.listen(process.env.PORT ?? 3000);
 }

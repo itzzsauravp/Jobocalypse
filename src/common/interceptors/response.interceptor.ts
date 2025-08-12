@@ -24,7 +24,7 @@ export class ResponseInterceptor implements NestInterceptor {
       map((data) => ({
         success: true,
         message,
-        data,
+        payload: data,
       })),
     );
   }

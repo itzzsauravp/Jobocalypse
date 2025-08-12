@@ -3,14 +3,30 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Admin } from './interface/admin.interface';
 import { hash } from 'bcryptjs';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
+import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllAdmins(): Promise<Array<Admin>> {
-    const admins = await this.prismaService.admin.findMany();
-    return admins;
+  async findAllAdmins(
+    dto: PaginationDTO,
+  ): Promise<PaginatedData<Array<Admin>>> {
+    const { limit, page } = dto;
+    const skip = (page - 1) * limit;
+    const admins = await this.prismaService.admin.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+    const totalCount = await this.prismaService.admin.count();
+    return {
+      data: admins,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
   }
 
   async findAdminByID(id: string): Promise<Admin> {

@@ -11,6 +11,8 @@ import { AdminModule } from './admin/admin.module';
 import { FirmModule } from './firm/firm.module';
 import { VacancyModule } from './vacancy/vacancy.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -24,8 +26,19 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     FirmModule,
     VacancyModule,
     CloudinaryModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 5,
+      },
+    ]),
   ],
   controllers: [AppController],
-  providers: [AppService, ResponseInterceptor, AllExceptionsFilter],
+  providers: [
+    AppService,
+    ResponseInterceptor,
+    AllExceptionsFilter,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

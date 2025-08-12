@@ -7,13 +7,20 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Vacancy } from './interface/vacancy.interface';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';
 import { UpdateVacancyDTO } from './dtos/update-vacancy.dto';
+import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class VacancyService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllVacancy(): Promise<Array<Vacancy>> {
-    return await this.prismaService.vacancy.findMany();
+  async findAllVacancy(dto: PaginationDTO): Promise<Array<Vacancy>> {
+    const { limit, page } = dto;
+    const skip = (page - 1) * limit;
+    return await this.prismaService.vacancy.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async findVacancyByID(id: string): Promise<Vacancy> {
