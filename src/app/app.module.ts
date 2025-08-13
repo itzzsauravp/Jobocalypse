@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ExecutionContext, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -14,6 +14,8 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from '../common/guards/custom-throttler.guard';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { Request } from 'express';
 
 @Module({
   imports: [
@@ -30,12 +32,23 @@ import { CustomThrottlerGuard } from '../common/guards/custom-throttler.guard';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => [
-        {
-          ttl: configService.getOrThrow<number>('THROTTLE_TTL_IN_SEC') * 1000,
-          limit: configService.getOrThrow<number>('THROTTLE_LIMIT'),
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: configService.getOrThrow<number>('THROTTLE_TTL_IN_SEC') * 1000,
+            limit: configService.getOrThrow<number>('THROTTLE_LIMIT'),
+          },
+        ],
+        storage: new ThrottlerStorageRedisService({
+          host: configService.getOrThrow<string>('REDIS_HOST'),
+          port: +configService.getOrThrow<number>('REDIS_PORT'),
+        }),
+        generateKey: (context: ExecutionContext) => {
+          const request: Request = context.switchToHttp().getRequest();
+          console.log(request.ip);
+          return `throttler-ip-(${request.ip})`;
         },
-      ],
+      }),
     }),
   ],
   controllers: [AppController],

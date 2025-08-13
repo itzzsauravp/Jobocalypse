@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import { ThrottlerMethodOrControllerOptions } from 'src/types/throttler.types';
 
 export const DEFAULT: Record<string, ThrottlerMethodOrControllerOptions> = {
@@ -27,6 +28,6 @@ export const TEST: Record<string, ThrottlerMethodOrControllerOptions> = {
   default: {
     limit: 5,
     ttl: 5_000,
-    blockDuration: 5_000,
+    blockDuration: 10_000,
   },
 };

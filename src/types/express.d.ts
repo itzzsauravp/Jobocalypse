@@ -1,5 +1,5 @@
 import 'express';
-import { User } from 'src/user/interface/user.interface';
+import { User } from 'src/app/user/interface/user.interface';
 
 declare module 'express' {
   export interface Request {
