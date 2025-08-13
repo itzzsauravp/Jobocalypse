@@ -10,21 +10,23 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminAuthService } from './admin-auth.service';
-import { AdminLocalAuthGuard } from './guards/admin-local-auth.guard';
 import type { Request as ExpRequest, Response } from 'express';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
-import { JwtRefreshStrategy } from '../common/strategies/jwt-refresh-strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
 import { LOGIN, SIGNUP, TEST } from 'src/common/constants/throttler-settings';
 import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
+import { MetadataGuard } from '../common/guards/metadata.guard';
+import { AuthEntity } from '../common/guards/auth-entity.guard';
+import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 
 @Controller('auth/admin')
 export class AdminAuthController {
   constructor(private readonly adminAuthService: AdminAuthService) {}
 
   @Throttle(LOGIN)
-  @UseGuards(AdminLocalAuthGuard)
+  @UseGuards(MetadataGuard, LocalAuthGuard)
+  @AuthEntity('admin')
   @Post('login')
   async login(
     @Request() request: ExpRequest,

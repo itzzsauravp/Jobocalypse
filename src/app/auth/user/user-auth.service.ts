@@ -13,16 +13,20 @@ import { compare } from 'bcryptjs';
 import { Response } from 'express';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { LoginEntityDTO } from 'src/common/dtos/login-entity.dto';
+import { BaseLocalAuthService } from '../interface/base-local-auth-service.interface';
+import { User } from 'src/app/user/interface/user.interface';
 
 @Injectable()
-export class UserAuthService {
+export class UserAuthService
+  implements BaseLocalAuthService<Omit<User, 'type'>>
+{
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
-  async validateUser(email: string, password: string) {
+  async validateEntity(email: string, password: string) {
     const user = await this.userService.findUserByEmail(email);
     if (!user || user.isDeleted) {
       throw new UnauthorizedException('Invalid Credentials');

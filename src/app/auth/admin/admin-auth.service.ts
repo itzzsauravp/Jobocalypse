@@ -12,16 +12,18 @@ import type { Response } from 'express';
 import { AdminService } from 'src/app/admin/admin.service';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { LoginEntityDTO } from 'src/common/dtos/login-entity.dto';
+import { BaseLocalAuthService } from '../interface/base-local-auth-service.interface';
+import { Admin } from 'src/app/admin/interface/admin.interface';
 
 @Injectable()
-export class AdminAuthService {
+export class AdminAuthService implements BaseLocalAuthService<Admin> {
   constructor(
     private readonly adminService: AdminService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
-  async validateAdmin(email: string, password: string) {
+  async validateEntity(email: string, password: string) {
     const admin = await this.adminService.findAdminByEmail(email);
     if (!admin) {
       throw new UnauthorizedException('Invalid Credentails');

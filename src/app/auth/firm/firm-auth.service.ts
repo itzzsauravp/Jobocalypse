@@ -12,16 +12,18 @@ import { Response } from 'express';
 import { LoginEntityDTO } from 'src/common/dtos/login-entity.dto';
 import { CreateFirmDTO } from 'src/app/firm/dtos/create-firm.dto';
 import { FirmService } from 'src/app/firm/firm.service';
+import { BaseLocalAuthService } from '../interface/base-local-auth-service.interface';
+import { Firm } from 'src/app/firm/interface/firm.interface';
 
 @Injectable()
-export class FirmAuthService {
+export class FirmAuthService implements BaseLocalAuthService<Firm> {
   constructor(
     private readonly firmService: FirmService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
-  async validateFirm(email: string, password: string) {
+  async validateEntity(email: string, password: string) {
     const firm = await this.firmService.findFirmByEmail(email);
     if (!firm || firm.isDeleted) {
       throw new UnauthorizedException('Invalid Credentials');

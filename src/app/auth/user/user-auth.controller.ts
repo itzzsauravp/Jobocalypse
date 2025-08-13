@@ -14,9 +14,11 @@ import { UserAuthService } from './user-auth.service';
 import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
-import { UserLocalAuthGuard } from './guards/user-local-auth.guard';
 import { Throttle } from '@nestjs/throttler';
 import { LOGIN, SIGNUP, TEST } from 'src/common/constants/throttler-settings';
+import { MetadataGuard } from '../common/guards/metadata.guard';
+import { LocalAuthGuard } from '../common/guards/local-auth.guard';
+import { AuthEntity } from '../common/guards/auth-entity.guard';
 
 @Controller('auth/user')
 export class UserAuthController {
@@ -28,7 +30,8 @@ export class UserAuthController {
   }
 
   @Throttle(LOGIN)
-  @UseGuards(UserLocalAuthGuard)
+  @UseGuards(MetadataGuard, LocalAuthGuard)
+  @AuthEntity('user')
   @Post('login')
   async login(
     @Request() request: ExpRequest,

@@ -12,18 +12,21 @@ import {
 import { FirmAuthService } from './firm-auth.service';
 import type { Request as ExpRequest, Response } from 'express';
 import { CreateFirmDTO } from 'src/app/firm/dtos/create-firm.dto';
-import { FirmLocalAuthGuard } from './guards/firm-local-auth.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
 import { Throttle } from '@nestjs/throttler';
 import { LOGIN, SIGNUP, TEST } from 'src/common/constants/throttler-settings';
+import { MetadataGuard } from '../common/guards/metadata.guard';
+import { LocalAuthGuard } from '../common/guards/local-auth.guard';
+import { AuthEntity } from '../common/guards/auth-entity.guard';
 
 @Controller('auth/firm')
 export class FirmAuthController {
   constructor(private readonly firmAuthService: FirmAuthService) {}
 
   @Throttle(LOGIN)
-  @UseGuards(FirmLocalAuthGuard)
+  @UseGuards(MetadataGuard, LocalAuthGuard)
+  @AuthEntity('firm')
   @Post('login')
   async login(
     @Request() request: ExpRequest,
