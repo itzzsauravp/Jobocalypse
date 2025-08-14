@@ -1,18 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { hash } from 'bcryptjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User } from './interface/user.interface';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
+import { User } from 'generated/prisma';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAll(
-    dto: PaginationDTO,
-  ): Promise<PaginatedData<Array<Omit<User, 'type'>>>> {
+  async findAll(dto: PaginationDTO): Promise<PaginatedData<Array<User>>> {
     const { page, limit } = dto;
     const skip = (page - 1) * limit;
     const users = await this.prismaService.user.findMany({
@@ -39,7 +37,7 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<Omit<User, 'type'> | null> {
+  async findByEmail(email: string): Promise<User | null> {
     const user = await this.prismaService.user.findUnique({
       where: {
         email,

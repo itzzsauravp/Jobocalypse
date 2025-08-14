@@ -7,7 +7,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { VACANCY_ENUM } from 'generated/prisma';
+import { VACANCY_LEVEL, VACANCY_TYPE } from 'generated/prisma';
 
 export class UpdateVacancyDTO {
   @IsOptional()
@@ -24,8 +24,13 @@ export class UpdateVacancyDTO {
   deadline: Date;
 
   @IsOptional()
-  @IsEnum(VACANCY_ENUM)
-  type: VACANCY_ENUM;
+  @IsEnum(VACANCY_TYPE)
+  type: VACANCY_TYPE;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(VACANCY_LEVEL)
+  level: VACANCY_LEVEL[];
 
   @IsOptional()
   @IsArray()

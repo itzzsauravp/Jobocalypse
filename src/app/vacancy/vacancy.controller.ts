@@ -10,16 +10,14 @@ import {
   Get,
 } from '@nestjs/common';
 import { VacancyService } from './vacancy.service';
-import { JwtAuthGuard } from 'src/app/auth/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';
 import type { Request as ExpRequest } from 'express';
 import { UpdateVacancyDTO } from './dtos/update-vacancy.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
-@Roles('firm')
 @Controller('vacancy')
 export class VacancyController {
   constructor(private readonly vacancyService: VacancyService) {}
@@ -27,8 +25,8 @@ export class VacancyController {
   @Get('/list')
   async listFirmsVacancies(
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.vacancyService.listFirmsVacancies> {
-    return await this.vacancyService.listFirmsVacancies(request.user.id);
+  ): ReturnType<typeof this.vacancyService.listBusinessVacancies> {
+    return await this.vacancyService.listBusinessVacancies(request.user.id);
   }
 
   @Post()

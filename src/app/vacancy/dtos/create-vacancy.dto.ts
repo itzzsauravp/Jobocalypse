@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsDate, IsEnum, IsString } from 'class-validator';
-import { VACANCY_ENUM } from 'generated/prisma';
+import { VACANCY_LEVEL, VACANCY_TYPE } from 'generated/prisma';
 
 export class CreateVacancyDTO {
   @IsString()
@@ -13,8 +13,12 @@ export class CreateVacancyDTO {
   @IsDate()
   deadline: Date;
 
-  @IsEnum(VACANCY_ENUM)
-  type: VACANCY_ENUM;
+  @IsEnum(VACANCY_TYPE)
+  type: VACANCY_TYPE;
+
+  @IsArray()
+  @IsEnum(VACANCY_TYPE)
+  level: VACANCY_LEVEL[];
 
   @IsArray()
   @IsString({ each: true })

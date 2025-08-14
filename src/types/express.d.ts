@@ -1,11 +1,12 @@
 import 'express';
-import { User } from 'src/app/user/interface/user.interface';
-import { Role } from 'src/common/interfaces/role.inteface';
+import { User } from 'generated/prisma';
+import { ValidatedEntity } from 'src/app/auth/auth.interface';
 
 declare module 'express' {
   export interface Request {
     cookie: { [key: string]: string };
-    user: User;
+    entity: ValidatedEntity;
     authEntity: Role;
+    user: User;
   }
 }

@@ -12,7 +12,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/app/auth/guards/jwt-auth.guard';
 import type { Request as ExpRequest } from 'express';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -20,6 +19,7 @@ import { UpdateUserDTO } from './dtos/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('user')

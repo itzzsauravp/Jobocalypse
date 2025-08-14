@@ -10,14 +10,12 @@ class SeedDatabase {
     const totalRows =
       (await this.prismaClient.user.count()) +
       (await this.prismaClient.admin.count()) +
-      (await this.prismaClient.vacancy.count()) +
-      (await this.prismaClient.firm.count());
+      (await this.prismaClient.vacancy.count());
 
     console.log('Deleting existing data...');
     await this.prismaClient.admin.deleteMany();
     await this.prismaClient.user.deleteMany();
     await this.prismaClient.vacancy.deleteMany();
-    await this.prismaClient.firm.deleteMany();
     console.log(`Deleted ${totalRows} from the database.`);
 
     console.log('Seeding database now....');
@@ -41,26 +39,6 @@ class SeedDatabase {
           password: await hash(this.password, 10),
           address: faker.location.city(),
           phoneNumber: faker.phone.number(),
-        },
-      });
-      const firm = await this.prismaClient.firm.create({
-        data: {
-          email: faker.internet.email(),
-          establishedOn: faker.date.past(),
-          location: faker.location.city(),
-          name: faker.company.name(),
-          password: await hash(this.password, 10),
-          phoneNumber: faker.phone.number(),
-          type: faker.company.buzzNoun(),
-        },
-      });
-      await this.prismaClient.vacancy.create({
-        data: {
-          firmID: firm.id,
-          deadline: faker.date.future(),
-          description: faker.lorem.lines(),
-          title: faker.company.buzzNoun(),
-          type: i % 2 === 0 ? 'ON_SITE' : 'REMOTE',
         },
       });
     }

@@ -14,34 +14,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum VACANCY_ENUM {
+enum VACANCY_TYPE {
   ON_SITE @map("on-site")
   REMOTE @map("remote")
 }
 
-model Firm {
-  id String @id @default(uuid()) @db.Uuid
-  name String
-  location String
-  type String
-  establishedOn DateTime 
-  phoneNumber String @unique
-  email String @unique
-  password String 
-  refreshToken String?
-  isVerified Boolean @default(false)
-  isDeleted Boolean @default(false)
-  profilePic String?
-  publicID String?
-  vacancies Vacancy[]
-  employees User[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum VACANCY_LEVEL {
+  FRESHERS @map("freshers")
+  JUNIOR @map("junior")
+  MID_LEVEL @map("mid-level")
+  SENIOR @map("senior")
 }
 
 model User {
   id String @id @default(uuid()) @db.Uuid
+
   firstName String
   lastName String
   email String @unique
@@ -53,36 +40,54 @@ model User {
   isDeleted Boolean @default(false)
   profilePic String?
   publicID String?
-
   provider String?
   providerID String?
-
-
   worksAtID String? @db.Uuid
-  worksAt Firm? @relation(fields: [worksAtID], references: [id]) 
-
+  isBusinessAccount Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  businessAccount Business? @relation(name: "BusinessOwner")
+}
+
+model Business {
+  id String @id @default(uuid()) @db.Uuid
+  
+  name String?
+  website String?
+  description String?
+  address String?
+  phoneNumber String?
+  documents String[] @default([])
+  vacancies Vacancy[]
+  isVerified Boolean @default(false)
+  isDeleted Boolean @default(false)
+
+  owner User @relation(name: "BusinessOwner", fields: [userID], references: [id])
+  userID String @unique @db.Uuid
 }
 
 model Vacancy {
   id String @id @default(uuid()) @db.Uuid
+
   title String
   description String
   deadline DateTime
   tags String[]
-  type VACANCY_ENUM
+  type VACANCY_TYPE
+  level VACANCY_LEVEL[]
   isActive Boolean @default(false)
-
-  firmID String @db.Uuid
-  firm Firm @relation(fields: [firmID], references: id)
-
+  isDeleted Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  business Business @relation(fields: [businessID], references: [id])
+  businessID String @db.Uuid
 }
 
 model Admin {
   id String @id @default(uuid()) @db.Uuid
+
   email String @unique
   firstName String
   lastName String

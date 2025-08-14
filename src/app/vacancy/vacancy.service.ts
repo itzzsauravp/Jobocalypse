@@ -4,10 +4,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Vacancy } from './interface/vacancy.interface';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';
 import { UpdateVacancyDTO } from './dtos/update-vacancy.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { Vacancy } from 'generated/prisma';
 
 @Injectable()
 export class VacancyService {
@@ -33,10 +33,10 @@ export class VacancyService {
     return vacancy;
   }
 
-  async listFirmsVacancies(id: string): Promise<Array<Vacancy>> {
+  async listBusinessVacancies(id: string): Promise<Array<Vacancy>> {
     return await this.prismaService.vacancy.findMany({
       where: {
-        firmID: id,
+        businessID: id,
       },
     });
   }
@@ -44,7 +44,7 @@ export class VacancyService {
   async createVacancy(id: string, dto: CreateVacancyDTO): Promise<Vacancy> {
     const vacancy = await this.prismaService.vacancy.create({
       data: {
-        firmID: id,
+        businessID: id,
         title: dto.title,
         description: dto.description,
         deadline: dto.deadline,
@@ -57,7 +57,7 @@ export class VacancyService {
 
   async updateVacancy(firmID: string, id: string, dto: UpdateVacancyDTO) {
     const vacancyToUpdate = await this.findVacancyByID(id);
-    if (firmID !== vacancyToUpdate.firmID) {
+    if (firmID !== vacancyToUpdate.businessID) {
       throw new UnauthorizedException();
     }
     return await this.prismaService.vacancy.update({
@@ -78,7 +78,7 @@ export class VacancyService {
 
   async deleteVacancy(id: string, idFromRequest: string): Promise<Vacancy> {
     const vacancyToDelte = await this.findVacancyByID(id);
-    if (idFromRequest !== vacancyToDelte.firmID) {
+    if (idFromRequest !== vacancyToDelte.businessID) {
       throw new UnauthorizedException();
     }
     return await this.prismaService.vacancy.delete({

@@ -5,5 +5,5 @@ export interface Vacancy {
   deadline: Date;
   tags: string[];
   isActive: boolean;
-  firmID: string;
+  
 }

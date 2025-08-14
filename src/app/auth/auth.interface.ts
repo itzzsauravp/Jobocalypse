@@ -3,8 +3,6 @@ import { Role } from 'src/common/interfaces/role.inteface';
 export interface TokenPayload {
   sub: string;
   email: string;
-  firstName: string;
-  lastName: string;
   type: Role;
 }
 

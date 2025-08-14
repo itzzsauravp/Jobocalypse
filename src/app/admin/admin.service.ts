@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Admin } from './interface/admin.interface';
 import { hash } from 'bcryptjs';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
+import { Admin } from 'generated/prisma';
 
 @Injectable()
 export class AdminService {
@@ -37,23 +37,14 @@ export class AdminService {
     return admin;
   }
 
-  async findByEmail(email: string): Promise<Admin> {
+  async findByEmail(email: string): Promise<Admin | null> {
     const admin = await this.prismaService.admin.findUnique({
       where: {
         email,
       },
     });
-    if (!admin) throw new NotFoundException('Admin not found');
+    if (!admin) return null;
     return admin;
-  }
-
-  async findExists(email: string): Promise<boolean> {
-    const admin = await this.prismaService.admin.findUnique({
-      where: {
-        email,
-      },
-    });
-    return admin ? true : false;
   }
 
   async create(dto: CreateEntityDTO): Promise<Admin> {
@@ -71,7 +62,7 @@ export class AdminService {
     return admin;
   }
 
-  async hardDelete(id: string): Promise<Admin> {
+  async delete(id: string): Promise<Admin> {
     const admin = await this.prismaService.admin.delete({
       where: {
         id,
