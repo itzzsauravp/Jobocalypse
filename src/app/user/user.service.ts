@@ -39,13 +39,13 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<Omit<User, 'type'>> {
+  async findByEmail(email: string): Promise<Omit<User, 'type'> | null> {
     const user = await this.prismaService.user.findUnique({
       where: {
         email,
       },
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) return null;
     return user;
   }
 

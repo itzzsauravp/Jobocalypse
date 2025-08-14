@@ -33,7 +33,6 @@ model Firm {
   isDeleted Boolean @default(false)
   profilePic String?
   publicID String?
-  
   vacancies Vacancy[]
   employees User[]
 
@@ -46,7 +45,7 @@ model User {
   firstName String
   lastName String
   email String @unique
-  password String
+  password String?
   address String?
   phoneNumber String?
   refreshToken String?
@@ -54,6 +53,10 @@ model User {
   isDeleted Boolean @default(false)
   profilePic String?
   publicID String?
+
+  provider String?
+  providerID String?
+
 
   worksAtID String? @db.Uuid
   worksAt Firm? @relation(fields: [worksAtID], references: [id]) 
@@ -89,7 +92,6 @@ model Admin {
   refreshToken String?
   profilePic String?
   publicID String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

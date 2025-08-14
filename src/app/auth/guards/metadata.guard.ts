@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { AUTH_ENTITY } from './auth-entity.guard';
+import { AUTH_ENTITY } from '../decorators/auth-entity.decorator';
 import { Request } from 'express';
 import { Role } from 'src/common/interfaces/role.inteface';
 

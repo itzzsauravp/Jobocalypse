@@ -14,11 +14,13 @@ import { Throttle } from '@nestjs/throttler';
 import { LOGIN, SIGNUP, TEST } from 'src/common/constants/throttler-settings';
 import { MetadataGuard } from './guards/metadata.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { AuthEntity } from './guards/auth-entity.guard';
-import type { Request as ExpRequest, Response } from 'express';
+import { AuthEntity } from './decorators/auth-entity.decorator';
+import { type Request as ExpRequest, type Response } from 'express';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { JwtAuthRefreshGuard } from './guards/jwt-auth-refresh.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthGuard } from './guards/google-oauth.guard';
+import { GenericOAuthEntity } from './auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -116,6 +118,23 @@ export class AuthController {
       request.user,
       response,
     );
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async auth() {}
+
+  @UseGuards(GoogleAuthGuard, MetadataGuard)
+  @Get('google/callback')
+  async googleAuthCallback(
+    @Request() request: ExpRequest,
+    @Res() response: Response,
+  ) {
+    await this.authService.handleOpenAuthentication(
+      request.user as GenericOAuthEntity,
+      response,
+    );
+    response.redirect('/');
   }
 
   @Throttle(TEST)

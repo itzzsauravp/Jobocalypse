@@ -5,7 +5,6 @@ import { hash } from 'bcryptjs';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
-import { CreateFirmDTO } from '../firm/dtos/create-firm.dto';
 
 @Injectable()
 export class AdminService {
