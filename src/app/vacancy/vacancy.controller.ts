@@ -10,7 +10,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { VacancyService } from './vacancy.service';
-import { JwtAuthGuard } from 'src/app/auth/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/app/auth/guards/jwt-auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';

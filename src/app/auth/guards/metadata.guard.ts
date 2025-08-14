@@ -5,6 +5,9 @@ import { AUTH_ENTITY } from './auth-entity.guard';
 import { Request } from 'express';
 import { Role } from 'src/common/interfaces/role.inteface';
 
+/**
+ * this guard will attach the `@AuthEnity's` decorator value to the request as `request.authEntity` which is then used in a resolver inside of the AuthService to make user of either admin | user | firm
+ */
 @Injectable()
 export class MetadataGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

@@ -10,7 +10,7 @@ import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 export class FirmService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllFirms(dto: PaginationDTO): Promise<PaginatedData<Array<Firm>>> {
+  async findAll(dto: PaginationDTO): Promise<PaginatedData<Array<Firm>>> {
     const { limit, page } = dto;
     const skip = (page - 1) * limit;
     const firms = await this.prismaService.firm.findMany({
@@ -27,7 +27,7 @@ export class FirmService {
     };
   }
 
-  async findFirmByID(id: string): Promise<Firm> {
+  async findByID(id: string): Promise<Firm> {
     const firm = await this.prismaService.firm.findUnique({
       where: {
         id,
@@ -37,7 +37,7 @@ export class FirmService {
     return firm;
   }
 
-  async findFirmByEmail(email: string): Promise<Firm> {
+  async findByEmail(email: string): Promise<Firm> {
     const firm = await this.prismaService.firm.findUnique({
       where: {
         email,
@@ -47,7 +47,7 @@ export class FirmService {
     return firm;
   }
 
-  async findFirmExits(email: string): Promise<boolean> {
+  async findExists(email: string): Promise<boolean> {
     const firm = await this.prismaService.firm.findUnique({
       where: {
         email,
@@ -56,7 +56,7 @@ export class FirmService {
     return firm ? true : false;
   }
 
-  async createFrim(dto: CreateFirmDTO): Promise<Firm> {
+  async create(dto: CreateFirmDTO): Promise<Firm> {
     const hashedPassword = await hash(dto.password, 10);
     const firm = await this.prismaService.firm.create({
       data: {
@@ -72,7 +72,7 @@ export class FirmService {
     return firm;
   }
 
-  async softDeleteFrim(id: string): Promise<Firm> {
+  async softDelete(id: string): Promise<Firm> {
     const firm = await this.prismaService.firm.update({
       where: {
         id,
@@ -84,10 +84,7 @@ export class FirmService {
     return firm;
   }
 
-  async bulkSoftDeleteFirm(
-    ids: Array<string>,
-    status: boolean,
-  ): Promise<string> {
+  async bulkSoftDelete(ids: Array<string>, status: boolean): Promise<string> {
     const result = await this.prismaService.firm.updateMany({
       where: {
         id: { in: ids },
@@ -99,7 +96,7 @@ export class FirmService {
     return `${result.count} firms deletion status set to ${status}`;
   }
 
-  async bulkUpdateFirmVerficationStatus(
+  async bulkUpdateVerficationStatus(
     ids: Array<string>,
     status: boolean,
   ): Promise<string> {
@@ -114,7 +111,7 @@ export class FirmService {
     return `${result.count} firms verification set to ${status}`;
   }
 
-  async udpateFirm(id: string, data: Partial<Firm>) {
+  async update(id: string, data: Partial<Firm>) {
     const firm = await this.prismaService.firm.update({
       where: {
         id,
@@ -124,7 +121,7 @@ export class FirmService {
     return firm;
   }
 
-  async updateFirmDeleteStatus(
+  async updateDeleteStatus(
     id: string,
     status: boolean,
   ): Promise<Omit<Firm, 'type'>> {
@@ -139,7 +136,7 @@ export class FirmService {
     return firm;
   }
 
-  async updateFrimVerificationStatus(
+  async updateVerificationStatus(
     id: string,
     status: boolean,
   ): Promise<Omit<Firm, 'type'>> {
@@ -154,7 +151,7 @@ export class FirmService {
     return firm;
   }
 
-  async revokeFirmAccess(id: string): Promise<Omit<Firm, 'type'>> {
+  async revokeAccess(id: string): Promise<Omit<Firm, 'type'>> {
     const firm = await this.prismaService.firm.update({
       where: {
         id,

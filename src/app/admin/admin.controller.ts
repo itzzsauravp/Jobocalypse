@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import type { Request as ExpRequest } from 'express';
-import { JwtAuthGuard } from 'src/app/auth/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/app/auth/guards/jwt-auth.guard';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
@@ -44,8 +44,8 @@ export class AdminController {
   @Get()
   async getAdminProfile(
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.adminService.findAdminByID> {
-    return await this.adminService.findAdminByID(request.user.id);
+  ): ReturnType<typeof this.adminService.findByID> {
+    return await this.adminService.findByID(request.user.id);
   }
 
   @ResponseMessage('admin updated successfully')
@@ -53,16 +53,16 @@ export class AdminController {
   async updateAdmin(
     @Body() dto: UpdateAdminDTO,
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.adminService.udpateAdmin> {
-    return await this.adminService.udpateAdmin(request.user.id, dto);
+  ): ReturnType<typeof this.adminService.update> {
+    return await this.adminService.update(request.user.id, dto);
   }
 
   @ResponseMessage('admin delete successfully')
   @Delete()
   async deleteAdmin(
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.adminService.hardDeleteAdmin> {
-    return await this.adminService.hardDeleteAdmin(request.user.id);
+  ): ReturnType<typeof this.adminService.hardDelete> {
+    return await this.adminService.hardDelete(request.user.id);
   }
 
   @ResponseMessage('profile picture updated successfully')
@@ -72,14 +72,14 @@ export class AdminController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
-    const admin = await this.adminService.findAdminByID(request.user.id);
+    const admin = await this.adminService.findByID(request.user.id);
     const uploadedResult = await this.cloudinaryService.uploadAvatar(
       file,
       'admin',
       request.user.id,
       admin.profilePic ? true : false,
     );
-    const updatedAdmin = await this.adminService.udpateAdmin(request.user.id, {
+    const updatedAdmin = await this.adminService.update(request.user.id, {
       profilePic: uploadedResult.secure_url as string,
       publicID: uploadedResult.public_id as string,
     });
@@ -89,7 +89,7 @@ export class AdminController {
   @ResponseMessage('avatar removed sucessfully')
   @Delete('avatar')
   async removeAvatar(@Request() request: ExpRequest) {
-    const admin = await this.adminService.findAdminByID(request.user.id);
+    const admin = await this.adminService.findByID(request.user.id);
     const result = await this.cloudinaryService.deleteImage(
       admin.publicID as string,
     );
@@ -104,16 +104,16 @@ export class AdminController {
   async bulkDeleteUsers(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,
-  ): ReturnType<typeof this.userService.bulkSoftDeleteUser> {
-    return this.userService.bulkSoftDeleteUser(ids, status);
+  ): ReturnType<typeof this.userService.bulkSoftDelete> {
+    return this.userService.bulkSoftDelete(ids, status);
   }
 
   @Post('user/verification')
   async bulkUpdateUserVerificationStatus(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,
-  ): ReturnType<typeof this.userService.bulkUpdateUserVerficationStatus> {
-    return this.userService.bulkUpdateUserVerficationStatus(ids, status);
+  ): ReturnType<typeof this.userService.bulkUpdateVerficationStatus> {
+    return this.userService.bulkUpdateVerficationStatus(ids, status);
   }
 
   @ResponseMessage('verification status updated')
@@ -121,8 +121,8 @@ export class AdminController {
   async udpateVerifcationStatusUser(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ): ReturnType<typeof this.userService.updateUserVerificationStatus> {
-    return await this.userService.updateUserVerificationStatus(id, status);
+  ): ReturnType<typeof this.userService.updateVerificationStatus> {
+    return await this.userService.updateVerificationStatus(id, status);
   }
 
   @ResponseMessage('deletion status updated')
@@ -130,30 +130,30 @@ export class AdminController {
   async softDeleteUser(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ): ReturnType<typeof this.userService.updateUserDeleteStatus> {
-    return await this.userService.updateUserDeleteStatus(id, status);
+  ): ReturnType<typeof this.userService.updateDeleteStatus> {
+    return await this.userService.updateDeleteStatus(id, status);
   }
 
   @ResponseMessage('access revoked')
   @Post('user/:id/access-revoke')
   async revokeAccessUser(
     @Param('id') id: string,
-  ): ReturnType<typeof this.userService.revokeUserAccess> {
-    return await this.userService.revokeUserAccess(id);
+  ): ReturnType<typeof this.userService.revokeAccess> {
+    return await this.userService.revokeAccess(id);
   }
 
   @Get('user/all')
   async findAllUsers(
     @Query() dto: PaginationDTO,
-  ): ReturnType<typeof this.userService.findAllUsers> {
-    return await this.userService.findAllUsers(dto);
+  ): ReturnType<typeof this.userService.findAll> {
+    return await this.userService.findAll(dto);
   }
 
   @Get('user/:id')
   async findUserByID(
     @Param('id') id: string,
-  ): ReturnType<typeof this.userService.findUserByID> {
-    return await this.userService.findUserByID(id);
+  ): ReturnType<typeof this.userService.findByID> {
+    return await this.userService.findByID(id);
   }
 
   // ========================= FIRM ROUTES ===================================
@@ -162,16 +162,16 @@ export class AdminController {
   async bulkDeleteFirms(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,
-  ): ReturnType<typeof this.firmService.bulkSoftDeleteFirm> {
-    return this.firmService.bulkSoftDeleteFirm(ids, status);
+  ): ReturnType<typeof this.firmService.bulkSoftDelete> {
+    return this.firmService.bulkSoftDelete(ids, status);
   }
 
   @Post('firm/verification')
   async bulkUpdateFirmVerificationStatus(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,
-  ): ReturnType<typeof this.firmService.bulkUpdateFirmVerficationStatus> {
-    return this.firmService.bulkUpdateFirmVerficationStatus(ids, status);
+  ): ReturnType<typeof this.firmService.bulkUpdateVerficationStatus> {
+    return this.firmService.bulkUpdateVerficationStatus(ids, status);
   }
 
   @ResponseMessage('verification status updated')
@@ -179,8 +179,8 @@ export class AdminController {
   async updateVerificationStatusFirm(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ): ReturnType<typeof this.firmService.updateFrimVerificationStatus> {
-    return await this.firmService.updateFrimVerificationStatus(id, status);
+  ): ReturnType<typeof this.firmService.updateVerificationStatus> {
+    return await this.firmService.updateVerificationStatus(id, status);
   }
 
   @ResponseMessage('deletion status updated')
@@ -188,30 +188,30 @@ export class AdminController {
   async softDeleteFirm(
     @Body('status') status: boolean,
     @Param('id') id: string,
-  ): ReturnType<typeof this.firmService.updateFirmDeleteStatus> {
-    return await this.firmService.updateFirmDeleteStatus(id, status);
+  ): ReturnType<typeof this.firmService.updateDeleteStatus> {
+    return await this.firmService.updateDeleteStatus(id, status);
   }
 
   @ResponseMessage('access revoked')
   @Post('firm/:id/access-revoke')
   async revokeAccessFirm(
     @Param('id') id: string,
-  ): ReturnType<typeof this.firmService.revokeFirmAccess> {
-    return await this.firmService.revokeFirmAccess(id);
+  ): ReturnType<typeof this.firmService.revokeAccess> {
+    return await this.firmService.revokeAccess(id);
   }
 
   @Get('firm/:id')
   findFirmByID(
     @Param('id') id: string,
-  ): ReturnType<typeof this.firmService.findFirmByID> {
-    return this.firmService.findFirmByID(id);
+  ): ReturnType<typeof this.firmService.findByID> {
+    return this.firmService.findByID(id);
   }
 
   @Get('firm/all')
   async findAllFrim(
     @Query() dto: PaginationDTO,
-  ): ReturnType<typeof this.firmService.findAllFirms> {
-    return await this.firmService.findAllFirms(dto);
+  ): ReturnType<typeof this.firmService.findAll> {
+    return await this.firmService.findAll(dto);
   }
   // ========================= VACANCY ROUTES ===================================
 

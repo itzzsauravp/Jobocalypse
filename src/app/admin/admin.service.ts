@@ -5,14 +5,13 @@ import { hash } from 'bcryptjs';
 import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
+import { CreateFirmDTO } from '../firm/dtos/create-firm.dto';
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllAdmins(
-    dto: PaginationDTO,
-  ): Promise<PaginatedData<Array<Admin>>> {
+  async findAll(dto: PaginationDTO): Promise<PaginatedData<Array<Admin>>> {
     const { limit, page } = dto;
     const skip = (page - 1) * limit;
     const admins = await this.prismaService.admin.findMany({
@@ -29,7 +28,7 @@ export class AdminService {
     };
   }
 
-  async findAdminByID(id: string): Promise<Admin> {
+  async findByID(id: string): Promise<Admin> {
     const admin = await this.prismaService.admin.findUnique({
       where: {
         id,
@@ -39,7 +38,7 @@ export class AdminService {
     return admin;
   }
 
-  async findAdminByEmail(email: string): Promise<Admin> {
+  async findByEmail(email: string): Promise<Admin> {
     const admin = await this.prismaService.admin.findUnique({
       where: {
         email,
@@ -49,7 +48,7 @@ export class AdminService {
     return admin;
   }
 
-  async findAdminExists(email: string): Promise<boolean> {
+  async findExists(email: string): Promise<boolean> {
     const admin = await this.prismaService.admin.findUnique({
       where: {
         email,
@@ -58,7 +57,7 @@ export class AdminService {
     return admin ? true : false;
   }
 
-  async createAdmin(dto: CreateEntityDTO): Promise<Admin> {
+  async create(dto: CreateEntityDTO): Promise<Admin> {
     const hashedPassword = await hash(dto.password, 10);
     const admin = await this.prismaService.admin.create({
       data: {
@@ -73,7 +72,7 @@ export class AdminService {
     return admin;
   }
 
-  async hardDeleteAdmin(id: string): Promise<Admin> {
+  async hardDelete(id: string): Promise<Admin> {
     const admin = await this.prismaService.admin.delete({
       where: {
         id,
@@ -82,7 +81,7 @@ export class AdminService {
     return admin;
   }
 
-  async udpateAdmin(id: string, data: Partial<Admin>) {
+  async update(id: string, data: Partial<Admin>) {
     const admin = await this.prismaService.admin.update({
       where: {
         id,

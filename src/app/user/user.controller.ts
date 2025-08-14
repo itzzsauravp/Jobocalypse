@@ -12,7 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/app/auth/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/app/auth/guards/jwt-auth.guard';
 import type { Request as ExpRequest } from 'express';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -33,25 +33,25 @@ export class UserController {
   @Get()
   async getUserProfile(
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.userService.findUserByID> {
-    return await this.userService.findUserByID(request.user.id);
+  ): ReturnType<typeof this.userService.findByID> {
+    return await this.userService.findByID(request.user.id);
   }
 
   @Patch()
   async updateUser(
     @Request() request: ExpRequest,
     @Body() data: UpdateUserDTO,
-  ): ReturnType<typeof this.userService.updateUser> {
-    const user = await this.userService.findUserByID(request.user.id);
+  ): ReturnType<typeof this.userService.update> {
+    const user = await this.userService.findByID(request.user.id);
     const updatedData: UpdateUserDTO = Object.assign(user, data);
-    return await this.userService.updateUser(request.user.id, updatedData);
+    return await this.userService.update(request.user.id, updatedData);
   }
 
   @Delete()
   async softDeleteUser(
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.userService.softDeleteUser> {
-    return this.userService.softDeleteUser(request.user.id);
+  ): ReturnType<typeof this.userService.softDelete> {
+    return this.userService.softDelete(request.user.id);
   }
 
   @ResponseMessage('profile picture updated successfully')
@@ -61,14 +61,14 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
-    const user = await this.userService.findUserByID(request.user.id);
+    const user = await this.userService.findByID(request.user.id);
     const uploadedResult = await this.cloudinaryService.uploadAvatar(
       file,
       'user',
       request.user.id,
       user.profilePic ? true : false,
     );
-    const updatedUser = await this.userService.updateUser(request.user.id, {
+    const updatedUser = await this.userService.update(request.user.id, {
       profilePic: uploadedResult.secure_url as string,
       publicID: uploadedResult.public_id as string,
     });
@@ -78,7 +78,7 @@ export class UserController {
   @ResponseMessage('avatar removed sucessfully')
   @Delete('avatar')
   async removeAvatar(@Request() request: ExpRequest) {
-    const user = await this.userService.findUserByID(request.user.id);
+    const user = await this.userService.findByID(request.user.id);
     const result = await this.cloudinaryService.deleteImage(
       user.publicID as string,
     );

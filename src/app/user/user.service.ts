@@ -10,7 +10,7 @@ import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllUsers(
+  async findAll(
     dto: PaginationDTO,
   ): Promise<PaginatedData<Array<Omit<User, 'type'>>>> {
     const { page, limit } = dto;
@@ -29,7 +29,7 @@ export class UserService {
     };
   }
 
-  async findUserByID(id: string): Promise<Omit<User, 'type'>> {
+  async findByID(id: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
@@ -39,7 +39,7 @@ export class UserService {
     return user;
   }
 
-  async findUserByEmail(email: string): Promise<Omit<User, 'type'>> {
+  async findByEmail(email: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.findUnique({
       where: {
         email,
@@ -49,7 +49,7 @@ export class UserService {
     return user;
   }
 
-  async findUserExists(email: string): Promise<boolean> {
+  async findExists(email: string): Promise<boolean> {
     const user = await this.prismaService.user.findUnique({
       where: {
         email,
@@ -58,7 +58,7 @@ export class UserService {
     return user ? true : false;
   }
 
-  async createUser(dto: CreateEntityDTO): Promise<Omit<User, 'type'>> {
+  async create(dto: CreateEntityDTO): Promise<Omit<User, 'type'>> {
     const hashedPassword = await hash(dto.password, 10);
     const user = await this.prismaService.user.create({
       data: {
@@ -73,7 +73,7 @@ export class UserService {
     return user;
   }
 
-  async softDeleteUser(id: string): Promise<Omit<User, 'type'>> {
+  async softDelete(id: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -85,10 +85,7 @@ export class UserService {
     return user;
   }
 
-  async bulkSoftDeleteUser(
-    ids: Array<string>,
-    status: boolean,
-  ): Promise<string> {
+  async bulkSoftDelete(ids: Array<string>, status: boolean): Promise<string> {
     const result = await this.prismaService.user.updateMany({
       where: {
         id: { in: ids },
@@ -100,7 +97,7 @@ export class UserService {
     return `${result.count} users deletion status set to ${status}`;
   }
 
-  async bulkUpdateUserVerficationStatus(
+  async bulkUpdateVerficationStatus(
     ids: Array<string>,
     status: boolean,
   ): Promise<string> {
@@ -115,10 +112,7 @@ export class UserService {
     return `${result.count} users verification set to ${status}`;
   }
 
-  async updateUser(
-    id: string,
-    data: Partial<User>,
-  ): Promise<Omit<User, 'type'>> {
+  async update(id: string, data: Partial<User>): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -128,7 +122,7 @@ export class UserService {
     return user;
   }
 
-  async updateUserDeleteStatus(
+  async updateDeleteStatus(
     id: string,
     status: boolean,
   ): Promise<Omit<User, 'type'>> {
@@ -143,7 +137,7 @@ export class UserService {
     return user;
   }
 
-  async updateUserVerificationStatus(
+  async updateVerificationStatus(
     id: string,
     status: boolean,
   ): Promise<Omit<User, 'type'>> {
@@ -158,7 +152,7 @@ export class UserService {
     return user;
   }
 
-  async revokeUserAccess(id: string): Promise<Omit<User, 'type'>> {
+  async revokeAccess(id: string): Promise<Omit<User, 'type'>> {
     const user = await this.prismaService.user.update({
       where: {
         id,
