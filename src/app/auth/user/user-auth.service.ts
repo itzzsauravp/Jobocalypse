@@ -10,11 +10,10 @@ import {
   GenericOAuthEntity,
   TokenPayload,
   ValidatedEntity,
-} from '../auth.interface';
+} from '../common/interface/auth.interface';
 import { compare, hash } from 'bcryptjs';
-import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
+import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'generated/prisma';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -43,7 +42,7 @@ export class UserAuthService {
     return { id: user.id, email: user.email, type: 'user' };
   }
 
-  async signup(dto: CreateEntityDTO) {
+  async signup(dto: CreateUserDTO) {
     if (dto.password !== dto.password2) {
       throw new BadRequestException(
         'Password does not match the confirm password',
@@ -107,30 +106,20 @@ export class UserAuthService {
   }
 
   async handleOpenAuthentication(
-    entity: GenericOAuthEntity,
+    currentProvider: string,
+    oAuthUser: GenericOAuthEntity,
     response: Response,
   ) {
-    let existingEntity: User | null;
-    existingEntity = await this.userService.findByEmail(entity.email);
-    if (!existingEntity) {
-      existingEntity = await this.prismaService.user.create({
-        data: {
-          email: entity.email,
-          firstName: entity.firstName,
-          lastName: entity.lastName,
-          profilePic: entity.profilePic,
-          provider: entity.provider,
-          providerID: entity.providerID,
-        },
-      });
+    const existingUser = await this.userService.assertCreate(oAuthUser);
+    if (
+      (existingUser.provider == currentProvider,
+      existingUser.providerID === oAuthUser.providerID)
+    ) {
+      return this.generateToken(
+        { email: existingUser.email, id: existingUser.id, type: 'user' },
+        response,
+      );
     }
-    return this.generateToken(
-      {
-        email: entity.email,
-        id: existingEntity.id,
-        type: 'user',
-      },
-      response,
-    );
+    throw new BadRequestException('user linked to a different OAuth provider');
   }
 }

@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { hash } from 'bcryptjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
+import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 import { User } from 'generated/prisma';
+import { GenericOAuthEntity } from '../auth/common/interface/auth.interface';
 
 @Injectable()
 export class UserService {
@@ -56,7 +57,7 @@ export class UserService {
     return user ? true : false;
   }
 
-  async create(dto: CreateEntityDTO): Promise<Omit<User, 'type'>> {
+  async create(dto: CreateUserDTO): Promise<Omit<User, 'type'>> {
     const hashedPassword = await hash(dto.password, 10);
     const user = await this.prismaService.user.create({
       data: {
@@ -69,6 +70,21 @@ export class UserService {
       },
     });
     return user;
+  }
+
+  async assertCreate(dto: GenericOAuthEntity) {
+    return await this.prismaService.user.upsert({
+      where: { email: dto.email },
+      update: {},
+      create: {
+        email: dto.email,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        profilePic: dto.profilePic,
+        provider: dto.provider,
+        providerID: dto.providerID,
+      },
+    });
   }
 
   async softDelete(id: string): Promise<Omit<User, 'type'>> {

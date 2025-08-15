@@ -26,7 +26,7 @@ export class VacancyController {
   async listFirmsVacancies(
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.vacancyService.listBusinessVacancies> {
-    return await this.vacancyService.listBusinessVacancies(request.user.id);
+    return await this.vacancyService.listBusinessVacancies(request.entity.id);
   }
 
   @Post()
@@ -34,7 +34,7 @@ export class VacancyController {
     @Body() dto: CreateVacancyDTO,
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.vacancyService.createVacancy> {
-    return this.vacancyService.createVacancy(request.user.id, dto);
+    return this.vacancyService.createVacancy(request.entity.id, dto);
   }
 
   @ResponseMessage('vacancy updated successfully')
@@ -44,7 +44,7 @@ export class VacancyController {
     @Request() request: ExpRequest,
     @Param('id') id: string,
   ): ReturnType<typeof this.vacancyService.updateVacancy> {
-    return this.vacancyService.updateVacancy(request.user.id, id, dto);
+    return this.vacancyService.updateVacancy(request.entity.id, id, dto);
   }
 
   @ResponseMessage('vacancy delete successfully')
@@ -53,6 +53,6 @@ export class VacancyController {
     @Param('id') id: string,
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.vacancyService.findVacancyByID> {
-    return await this.vacancyService.deleteVacancy(id, request.user.id);
+    return await this.vacancyService.deleteVacancy(id, request.entity.id);
   }
 }

@@ -9,10 +9,21 @@ import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
 import { Reflector } from '@nestjs/core';
 import type { Response } from 'express';
 
+interface GenericResponse<T> {
+  success: boolean;
+  message: string;
+  payload: T;
+}
+
 @Injectable()
-export class ResponseInterceptor implements NestInterceptor {
+export class ResponseInterceptor<T>
+  implements NestInterceptor<T, GenericResponse<T>>
+{
   constructor(private readonly reflector: Reflector) {}
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<GenericResponse<T>> {
     const message =
       this.reflector.getAllAndOverride<string>(RESPONSE_MESSAGE_KEY, [
         context.getHandler(),
@@ -24,7 +35,7 @@ export class ResponseInterceptor implements NestInterceptor {
       map((data) => ({
         success: true,
         message,
-        payload: data,
+        payload: data as T,
       })),
     );
   }

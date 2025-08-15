@@ -9,6 +9,7 @@ import { LocalStrategy } from './common/strategies/local-auth.strategy';
 import { GoogleAuthStrategy } from './common/strategies/google-oauth-strategy';
 import { AdminModule } from '../admin/admin.module';
 import { UserModule } from '../user/user.module';
+import { GithubAuthStrategy } from './common/strategies/github-oauth-strategy';
 
 @Module({
   imports: [AdminAuthModule, UserAuthModule, AdminModule, UserModule],
@@ -18,6 +19,7 @@ import { UserModule } from '../user/user.module';
     LocalStrategy,
     AuthService,
     GoogleAuthStrategy,
+    GithubAuthStrategy,
   ],
   controllers: [AuthController],
 })

@@ -2,7 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AdminService } from 'src/app/admin/admin.service';
-import { TokenPayload, ValidatedEntity } from '../auth.interface';
+import {
+  TokenPayload,
+  ValidatedEntity,
+} from '../common/interface/auth.interface';
 import { compare, hash } from 'bcryptjs';
 import { Response } from 'express';
 

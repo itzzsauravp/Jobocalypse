@@ -43,7 +43,7 @@ export class AdminController {
   async getAdminProfile(
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.adminService.findByID> {
-    return await this.adminService.findByID(request.user.id);
+    return await this.adminService.findByID(request.entity.id);
   }
 
   @ResponseMessage('admin updated successfully')
@@ -52,7 +52,7 @@ export class AdminController {
     @Body() dto: UpdateAdminDTO,
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.adminService.update> {
-    return await this.adminService.update(request.user.id, dto);
+    return await this.adminService.update(request.entity.id, dto);
   }
 
   @ResponseMessage('admin delete successfully')
@@ -60,7 +60,7 @@ export class AdminController {
   async deleteAdmin(
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.adminService.delete> {
-    return await this.adminService.delete(request.user.id);
+    return await this.adminService.delete(request.entity.id);
   }
 
   @ResponseMessage('profile picture updated successfully')
@@ -70,14 +70,14 @@ export class AdminController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
-    const admin = await this.adminService.findByID(request.user.id);
+    const admin = await this.adminService.findByID(request.entity.id);
     const uploadedResult = await this.cloudinaryService.uploadAvatar(
       file,
       'admin',
-      request.user.id,
+      request.entity.id,
       admin.profilePic ? true : false,
     );
-    const updatedAdmin = await this.adminService.update(request.user.id, {
+    const updatedAdmin = await this.adminService.update(request.entity.id, {
       profilePic: uploadedResult.secure_url as string,
       publicID: uploadedResult.public_id as string,
     });
@@ -87,7 +87,7 @@ export class AdminController {
   @ResponseMessage('avatar removed sucessfully')
   @Delete('avatar')
   async removeAvatar(@Request() request: ExpRequest) {
-    const admin = await this.adminService.findByID(request.user.id);
+    const admin = await this.adminService.findByID(request.entity.id);
     const result = await this.cloudinaryService.deleteImage(
       admin.publicID as string,
     );

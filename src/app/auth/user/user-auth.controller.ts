@@ -17,9 +17,11 @@ import type { Request as ExpRequest, Response } from 'express';
 import { JwtAuthRefreshGuard } from '../common/guards/jwt-auth-refresh.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { UserAuthService } from './user-auth.service';
-import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { AuthEntity } from '../common/decorators/auth-entity.decorator';
+import { GithubAuthGuard } from '../common/guards/github-oauth.guard';
 import { GoogleAuthGuard } from '../common/guards/google-oauth.guard';
+import { GITHUB, GOOGLE } from '../common/constants';
+import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
 
 @Controller('auth/user')
 export class UserAuthController {
@@ -51,7 +53,7 @@ export class UserAuthController {
   @HttpCode(HttpStatus.CREATED)
   @Post('signup')
   async signupUser(
-    @Body() dto: CreateEntityDTO,
+    @Body() dto: CreateUserDTO,
   ): ReturnType<typeof this.userAuthService.signup> {
     return await this.userAuthService.signup(dto);
   }
@@ -66,11 +68,38 @@ export class UserAuthController {
   @Throttle(SIGNUP)
   @UseGuards(GoogleAuthGuard)
   @Get('google')
-  async auth() {}
+  async authGoogle() {}
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  googleAuthCallback(@Request() request: ExpRequest) {
-    return { user: request.user };
+  async googleAuthCallback(
+    @Request() request: ExpRequest,
+    @Res() response: Response,
+  ) {
+    await this.userAuthService.handleOpenAuthentication(
+      GOOGLE,
+      request.user,
+      response,
+    );
+    return response.redirect('/');
+  }
+
+  @Throttle(SIGNUP)
+  @UseGuards(GithubAuthGuard)
+  @Get('github')
+  async authGithub() {}
+
+  @UseGuards(GithubAuthGuard)
+  @Get('github/callback')
+  async githubAuthCallback(
+    @Request() request: ExpRequest,
+    @Res() response: Response,
+  ) {
+    await this.userAuthService.handleOpenAuthentication(
+      GITHUB,
+      request.user,
+      response,
+    );
+    return response.redirect('/');
   }
 }

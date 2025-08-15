@@ -4,7 +4,7 @@ import { Strategy } from 'passport-local';
 import { Request } from 'express';
 import { AuthService } from '../../auth.service';
 import { Role } from 'src/common/interfaces/role.inteface';
-import { ValidatedEntity } from '../../auth.interface';
+import { ValidatedEntity } from '../interface/auth.interface';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {

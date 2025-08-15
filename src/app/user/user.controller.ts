@@ -34,7 +34,7 @@ export class UserController {
   async getUserProfile(
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.userService.findByID> {
-    return await this.userService.findByID(request.user.id);
+    return await this.userService.findByID(request.entity.id);
   }
 
   @Patch()
@@ -42,16 +42,16 @@ export class UserController {
     @Request() request: ExpRequest,
     @Body() data: UpdateUserDTO,
   ): ReturnType<typeof this.userService.update> {
-    const user = await this.userService.findByID(request.user.id);
+    const user = await this.userService.findByID(request.entity.id);
     const updatedData: UpdateUserDTO = Object.assign(user, data);
-    return await this.userService.update(request.user.id, updatedData);
+    return await this.userService.update(request.entity.id, updatedData);
   }
 
   @Delete()
   async softDeleteUser(
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.userService.softDelete> {
-    return this.userService.softDelete(request.user.id);
+    return this.userService.softDelete(request.entity.id);
   }
 
   @ResponseMessage('profile picture updated successfully')
@@ -61,14 +61,14 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
-    const user = await this.userService.findByID(request.user.id);
+    const user = await this.userService.findByID(request.entity.id);
     const uploadedResult = await this.cloudinaryService.uploadAvatar(
       file,
       'user',
-      request.user.id,
+      request.entity.id,
       user.profilePic ? true : false,
     );
-    const updatedUser = await this.userService.update(request.user.id, {
+    const updatedUser = await this.userService.update(request.entity.id, {
       profilePic: uploadedResult.secure_url as string,
       publicID: uploadedResult.public_id as string,
     });
@@ -78,7 +78,7 @@ export class UserController {
   @ResponseMessage('avatar removed sucessfully')
   @Delete('avatar')
   async removeAvatar(@Request() request: ExpRequest) {
-    const user = await this.userService.findByID(request.user.id);
+    const user = await this.userService.findByID(request.entity.id);
     const result = await this.cloudinaryService.deleteImage(
       user.publicID as string,
     );

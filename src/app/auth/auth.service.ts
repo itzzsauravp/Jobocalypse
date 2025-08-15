@@ -3,7 +3,7 @@ import { UserService } from '../user/user.service';
 import { AdminService } from '../admin/admin.service';
 import { Role } from 'src/common/interfaces/role.inteface';
 import { compare } from 'bcryptjs';
-import { ValidatedEntity } from './auth.interface';
+import { ValidatedEntity } from './common/interface/auth.interface';
 
 @Injectable()
 export class AuthService {

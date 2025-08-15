@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { hash } from 'bcryptjs';
-import { CreateEntityDTO } from 'src/common/dtos/create-entity.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 import { Admin } from 'generated/prisma';
@@ -44,21 +43,6 @@ export class AdminService {
       },
     });
     if (!admin) return null;
-    return admin;
-  }
-
-  async create(dto: CreateEntityDTO): Promise<Admin> {
-    const hashedPassword = await hash(dto.password, 10);
-    const admin = await this.prismaService.admin.create({
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        email: dto.email,
-        address: dto.address ?? null,
-        phoneNumber: dto.phoneNumber ?? null,
-        password: hashedPassword,
-      },
-    });
     return admin;
   }
 
