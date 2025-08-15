@@ -72,7 +72,7 @@ export class UserService {
     return user;
   }
 
-  async assertCreate(dto: GenericOAuthEntity) {
+  async upsertCreate(dto: GenericOAuthEntity) {
     return await this.prismaService.user.upsert({
       where: { email: dto.email },
       update: {},

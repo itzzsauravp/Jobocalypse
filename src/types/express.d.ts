@@ -10,5 +10,6 @@ declare module 'express' {
     entity: ValidatedEntity;
     authEntity: Role;
     user: GenericOAuthEntity;
+    businessID: string;
   }
 }

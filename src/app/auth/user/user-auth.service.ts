@@ -110,7 +110,7 @@ export class UserAuthService {
     oAuthUser: GenericOAuthEntity,
     response: Response,
   ) {
-    const existingUser = await this.userService.assertCreate(oAuthUser);
+    const existingUser = await this.userService.upsertCreate(oAuthUser);
     if (
       (existingUser.provider == currentProvider,
       existingUser.providerID === oAuthUser.providerID)

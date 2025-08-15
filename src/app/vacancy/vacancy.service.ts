@@ -13,7 +13,7 @@ import { Vacancy } from 'generated/prisma';
 export class VacancyService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAllVacancy(dto: PaginationDTO): Promise<Array<Vacancy>> {
+  async findAll(dto: PaginationDTO): Promise<Array<Vacancy>> {
     const { limit, page } = dto;
     const skip = (page - 1) * limit;
     return await this.prismaService.vacancy.findMany({
@@ -23,7 +23,7 @@ export class VacancyService {
     });
   }
 
-  async findVacancyByID(id: string): Promise<Vacancy> {
+  async findByID(id: string): Promise<Vacancy> {
     const vacancy = await this.prismaService.vacancy.findUnique({
       where: {
         id,
@@ -33,18 +33,21 @@ export class VacancyService {
     return vacancy;
   }
 
-  async listBusinessVacancies(id: string): Promise<Array<Vacancy>> {
+  async listBusinessVacancies(businessID: string): Promise<Array<Vacancy>> {
     return await this.prismaService.vacancy.findMany({
       where: {
-        businessID: id,
+        businessID,
       },
     });
   }
 
-  async createVacancy(id: string, dto: CreateVacancyDTO): Promise<Vacancy> {
+  async createVacancy(
+    businessID: string,
+    dto: CreateVacancyDTO,
+  ): Promise<Vacancy> {
     const vacancy = await this.prismaService.vacancy.create({
       data: {
-        businessID: id,
+        businessID,
         title: dto.title,
         description: dto.description,
         deadline: dto.deadline,
@@ -56,7 +59,7 @@ export class VacancyService {
   }
 
   async updateVacancy(firmID: string, id: string, dto: UpdateVacancyDTO) {
-    const vacancyToUpdate = await this.findVacancyByID(id);
+    const vacancyToUpdate = await this.findByID(id);
     if (firmID !== vacancyToUpdate.businessID) {
       throw new UnauthorizedException();
     }
@@ -77,7 +80,7 @@ export class VacancyService {
   }
 
   async deleteVacancy(id: string, idFromRequest: string): Promise<Vacancy> {
-    const vacancyToDelte = await this.findVacancyByID(id);
+    const vacancyToDelte = await this.findByID(id);
     if (idFromRequest !== vacancyToDelte.businessID) {
       throw new UnauthorizedException();
     }

@@ -20,12 +20,12 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 import { UserService } from 'src/app/user/user.service';
 import { AdminService } from './admin.service';
 import { UpdateAdminDTO } from './dtos/update-admin.dto';
-import { Vacancy } from 'src/app/vacancy/interface/vacancy.interface';
 import { VacancyService } from 'src/app/vacancy/vacancy.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
+import { Vacancy } from 'generated/prisma';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('admin')
@@ -88,7 +88,7 @@ export class AdminController {
   @Delete('avatar')
   async removeAvatar(@Request() request: ExpRequest) {
     const admin = await this.adminService.findByID(request.entity.id);
-    const result = await this.cloudinaryService.deleteImage(
+    const result = await this.cloudinaryService.deleteFile(
       admin.publicID as string,
     );
     if (result?.data.result !== 'ok')
@@ -164,14 +164,14 @@ export class AdminController {
   @Get('vacancy/all')
   async findAllVacVacancy(
     @Query() dto: PaginationDTO,
-  ): ReturnType<typeof this.vacancyService.findAllVacancy> {
-    return await this.vacancyService.findAllVacancy(dto);
+  ): ReturnType<typeof this.vacancyService.findAll> {
+    return await this.vacancyService.findAll(dto);
   }
 
   @Get('vacancy/:id')
   findVacancyByID(
     @Param('id') id: string,
-  ): ReturnType<typeof this.vacancyService.findVacancyByID> {
-    return this.vacancyService.findVacancyByID(id);
+  ): ReturnType<typeof this.vacancyService.findByID> {
+    return this.vacancyService.findByID(id);
   }
 }

@@ -52,7 +52,7 @@ export class VacancyController {
   async getVacancyByID(
     @Param('id') id: string,
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.vacancyService.findVacancyByID> {
+  ): ReturnType<typeof this.vacancyService.findByID> {
     return await this.vacancyService.deleteVacancy(id, request.entity.id);
   }
 }

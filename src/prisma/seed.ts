@@ -21,7 +21,7 @@ class SeedDatabase {
     console.log('Seeding database now....');
     await this.prismaClient.admin.create({
       data: {
-        email: 'social.saurav2003@gmail.com',
+        email: 'admin@gmail.com',
         firstName: 'Saurav',
         lastName: 'Parajulee',
         password: await hash(this.password, 10),

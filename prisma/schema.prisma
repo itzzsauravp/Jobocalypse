@@ -26,6 +26,12 @@ enum VACANCY_LEVEL {
   SENIOR @map("senior")
 }
 
+enum STATUS {
+  PENDING @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
 model User {
   id String @id @default(uuid()) @db.Uuid
 
@@ -34,6 +40,8 @@ model User {
   email String @unique
   password String?
   address String?
+  bio String?
+  documents Documents[]
   phoneNumber String?
   refreshToken String?
   isVerified Boolean @default(false)
@@ -42,7 +50,7 @@ model User {
   publicID String?
   provider String?
   providerID String?
-  worksAtID String? @db.Uuid
+  worksAtID String? @db.Uuid // this has no use right now.
   isBusinessAccount Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,18 +61,39 @@ model User {
 model Business {
   id String @id @default(uuid()) @db.Uuid
   
-  name String?
+  name String
   website String?
   description String?
-  address String?
-  phoneNumber String?
-  documents String[] @default([])
+  address String
+  phoneNumber String
+  documents Documents[]
   vacancies Vacancy[]
+  status STATUS @default(PENDING)
   isVerified Boolean @default(false)
   isDeleted Boolean @default(false)
+  verifiedAt DateTime?
 
   owner User @relation(name: "BusinessOwner", fields: [userID], references: [id])
   userID String @unique @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Documents {
+  id String @id @default(uuid()) @db.Uuid
+  secureURL String
+  publicID String
+  type String
+  format String
+  uploadedAt DateTime @default(now())
+  status STATUS @default(PENDING)
+
+  business Business? @relation(fields: [businessID], references: [id])
+  businessID String? @db.Uuid
+
+  user User? @relation(fields: [userID], references: [id])
+  userID String? @db.Uuid
 }
 
 model Vacancy {
@@ -76,6 +105,7 @@ model Vacancy {
   tags String[]
   type VACANCY_TYPE
   level VACANCY_LEVEL[]
+  images String[] @default([])
   isActive Boolean @default(false)
   isDeleted Boolean @default(false)
   createdAt DateTime @default(now())

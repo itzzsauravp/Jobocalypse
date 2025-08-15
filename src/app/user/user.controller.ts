@@ -61,6 +61,7 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
+    console.log(file);
     const user = await this.userService.findByID(request.entity.id);
     const uploadedResult = await this.cloudinaryService.uploadAvatar(
       file,
@@ -79,7 +80,7 @@ export class UserController {
   @Delete('avatar')
   async removeAvatar(@Request() request: ExpRequest) {
     const user = await this.userService.findByID(request.entity.id);
-    const result = await this.cloudinaryService.deleteImage(
+    const result = await this.cloudinaryService.deleteFile(
       user.publicID as string,
     );
     if (result?.data.result !== 'ok')

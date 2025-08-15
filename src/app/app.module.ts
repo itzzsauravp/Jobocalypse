@@ -15,6 +15,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from '../common/guards/custom-throttler.guard';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { Request } from 'express';
+import { BusinessModule } from './business/business.module';
+import { DocumentModule } from './document/document.module';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { Request } from 'express';
     AdminModule,
     VacancyModule,
     CloudinaryModule,
+    BusinessModule,
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -48,6 +51,8 @@ import { Request } from 'express';
         },
       }),
     }),
+    BusinessModule,
+    DocumentModule,
   ],
   controllers: [AppController],
   providers: [
