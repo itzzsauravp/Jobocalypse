@@ -5,9 +5,18 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserModule } from 'src/app/user/user.module';
 import { VacancyModule } from 'src/app/vacancy/vacancy.module';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { BusinessModule } from '../business/business.module';
+import { AdminAssetsModule } from 'src/assets/admin/admin-assets.module';
 
 @Module({
-  imports: [PrismaModule, UserModule, VacancyModule, CloudinaryModule],
+  imports: [
+    PrismaModule,
+    UserModule,
+    VacancyModule,
+    BusinessModule,
+    CloudinaryModule,
+    AdminAssetsModule,
+  ],
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService],

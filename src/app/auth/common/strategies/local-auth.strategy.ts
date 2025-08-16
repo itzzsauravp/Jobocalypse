@@ -20,6 +20,11 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     password: string,
   ): Promise<ValidatedEntity> {
     const authEntity = request.authEntity as Role;
-    return await this.authService.validateEntity(authEntity, email, password);
+    const entity = await this.authService.validateEntity(
+      authEntity,
+      email,
+      password,
+    );
+    return entity;
   }
 }

@@ -6,32 +6,69 @@ import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 import { User } from 'generated/prisma';
 import { GenericOAuthEntity } from '../auth/common/interface/auth.interface';
+import { UserAssetsService } from 'src/assets/user/user-assets.service';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly userAssetsService: UserAssetsService,
+    private readonly cacheService: CacheService,
+  ) {}
 
   async findAll(dto: PaginationDTO): Promise<PaginatedData<Array<User>>> {
     const { page, limit } = dto;
     const skip = (page - 1) * limit;
-    const users = await this.prismaService.user.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    });
+    let cachedUser = await this.cacheService.get<Array<User>>(
+      'admin:paginated-user',
+    );
+    if (!cachedUser) {
+      const users = await this.prismaService.user.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          assets: {
+            where: { type: 'PROFILE_PIC' },
+            orderBy: { uploadedAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+      await this.cacheService.set('admin:paginated-user', users);
+      cachedUser = users;
+    }
     const totalCount = await this.prismaService.user.count();
     return {
-      data: users,
+      data: cachedUser,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
     };
   }
 
-  async findByID(id: string): Promise<Omit<User, 'type'>> {
+  async findByIDNoAssets(id: string): Promise<User> {
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async findByID(id: string): Promise<User> {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        assets: {
+          where: { type: 'PROFILE_PIC' },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
+        },
       },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -42,6 +79,13 @@ export class UserService {
     const user = await this.prismaService.user.findUnique({
       where: {
         email,
+      },
+      include: {
+        assets: {
+          where: { type: 'PROFILE_PIC' },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
+        },
       },
     });
     if (!user) return null;
@@ -57,7 +101,7 @@ export class UserService {
     return user ? true : false;
   }
 
-  async create(dto: CreateUserDTO): Promise<Omit<User, 'type'>> {
+  async create(dto: CreateUserDTO): Promise<User> {
     const hashedPassword = await hash(dto.password, 10);
     const user = await this.prismaService.user.create({
       data: {
@@ -73,21 +117,29 @@ export class UserService {
   }
 
   async upsertCreate(dto: GenericOAuthEntity) {
-    return await this.prismaService.user.upsert({
+    const user = await this.prismaService.user.upsert({
       where: { email: dto.email },
       update: {},
       create: {
         email: dto.email,
         firstName: dto.firstName,
         lastName: dto.lastName,
-        profilePic: dto.profilePic,
         provider: dto.provider,
         providerID: dto.providerID,
       },
     });
+
+    if (dto.profilePic) {
+      await this.userAssetsService.saveProfilePictureOAuth(
+        user.id,
+        dto.profilePic,
+      );
+    }
+
+    return user;
   }
 
-  async softDelete(id: string): Promise<Omit<User, 'type'>> {
+  async delete(id: string): Promise<User> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -99,13 +151,16 @@ export class UserService {
     return user;
   }
 
-  async bulkSoftDelete(ids: Array<string>, status: boolean): Promise<string> {
+  async bulkUpdateDeletionStatus(
+    ids: Array<string>,
+    status: boolean,
+  ): Promise<string> {
     const result = await this.prismaService.user.updateMany({
       where: {
         id: { in: ids },
       },
       data: {
-        isDeleted: true,
+        isDeleted: status,
       },
     });
     return `${result.count} users deletion status set to ${status}`;
@@ -126,7 +181,7 @@ export class UserService {
     return `${result.count} users verification set to ${status}`;
   }
 
-  async update(id: string, data: Partial<User>): Promise<Omit<User, 'type'>> {
+  async update(id: string, data: Partial<User>): Promise<User> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -136,10 +191,7 @@ export class UserService {
     return user;
   }
 
-  async updateDeleteStatus(
-    id: string,
-    status: boolean,
-  ): Promise<Omit<User, 'type'>> {
+  async updateDeleteStatus(id: string, status: boolean): Promise<User> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -151,10 +203,7 @@ export class UserService {
     return user;
   }
 
-  async updateVerificationStatus(
-    id: string,
-    status: boolean,
-  ): Promise<Omit<User, 'type'>> {
+  async updateVerificationStatus(id: string, status: boolean): Promise<User> {
     const user = await this.prismaService.user.update({
       where: {
         id,
@@ -166,7 +215,7 @@ export class UserService {
     return user;
   }
 
-  async revokeAccess(id: string): Promise<Omit<User, 'type'>> {
+  async revokeAccess(id: string): Promise<User> {
     const user = await this.prismaService.user.update({
       where: {
         id,

@@ -16,8 +16,6 @@ import { CustomThrottlerGuard } from '../common/guards/custom-throttler.guard';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { Request } from 'express';
 import { BusinessModule } from './business/business.module';
-import { DocumentModule } from './document/document.module';
-
 @Module({
   imports: [
     AuthModule,
@@ -51,8 +49,6 @@ import { DocumentModule } from './document/document.module';
         },
       }),
     }),
-    BusinessModule,
-    DocumentModule,
   ],
   controllers: [AppController],
   providers: [

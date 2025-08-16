@@ -6,6 +6,10 @@ import { Role } from 'src/common/interfaces/role.inteface';
 import sharp from 'sharp';
 import { CLOUDINARY } from './cloudinary.provider';
 
+export type CloudianryRootFolder = 'documents' | 'assets';
+export type CloudinarySubFolder = 'admin' | 'user' | 'business' | 'vacancy';
+export type CloudinaryUploadResouce = 'image' | 'video' | 'raw' | 'auto';
+
 @Injectable()
 export class CloudinaryService {
   constructor(
@@ -38,20 +42,28 @@ export class CloudinaryService {
     });
   }
 
+  /**
+   *
+   * @param file File to be uploaded (comes from multer middlware for nestjs).
+   * @param root Root folder name to save it in cloudianry like: `documents`, `assets` etc.
+   * @param folder Sub folder under which the file is going to be saved, this is based on the roles like: `user`, `admin`, `business` etc.
+   * @param id ID of the uploader i.e `businessID`, `adminID`, `userID` etc.
+   * @returns `void`
+   */
   async singleFileUpload(
     file: Express.Multer.File,
-    folder: Role,
+    root: CloudianryRootFolder,
+    folder: CloudinarySubFolder,
     id: string,
-    overwrite: boolean = false,
   ): Promise<CloudinaryResponse> {
     const optimizeBuffer = await this.optimizeBuffer(file.buffer);
     return new Promise<CloudinaryResponse>((resolve, reject) => {
       const uniqueName = `${Date.now()}-${id}`;
       const uploadStream = this.cloudinaryInstance.uploader.upload_stream(
         {
-          folder: `assets/${folder}/${id}`,
+          folder: `${root}/${folder}/${id}`,
           public_id: uniqueName,
-          overwrite,
+          overwrite: false,
           resource_type: 'raw',
         },
         (error, result) => {
@@ -64,23 +76,30 @@ export class CloudinaryService {
     });
   }
 
-  //  Later on can do this just from the frontend to put load off of the server.
-  // please set a limit on the files size.
-  async documentsUpload(
+  /**
+   *
+   * @param files Array of files to be uploaded (comes from multer middlware for nestjs).
+   * @param root Root folder name to save it in cloudianry like: `documents`, `assets` etc.
+   * @param folder Sub folder under which the file is going to be saved, this is based on the roles like: `user`, `admin`, `business` etc.
+   * @param id ID of the uploader i.e `businessID`, `adminID`, `userID` etc.
+   * @returns `void`
+   */
+  async multiFileUpload(
     files: Array<Express.Multer.File>,
-    folder: Role,
+    root: CloudianryRootFolder,
+    folder: CloudinarySubFolder,
     id: string,
-    overwrite: boolean = false,
+    resource_type: CloudinaryUploadResouce = 'image',
   ): Promise<CloudinaryResponse[]> {
     const CloudinaryPromisesArray = files.map(async (file, index) => {
       return new Promise<CloudinaryResponse>((resolve, reject) => {
         const uniqueName = `${Date.now()}-${id}-${index}`;
         const uploadStream = this.cloudinaryInstance.uploader.upload_stream(
           {
-            folder: `documents/${folder}/${id}`,
+            folder: `${root}/${folder}/${id}`,
             public_id: uniqueName,
-            overwrite,
-            resource_type: 'raw',
+            overwrite: false,
+            resource_type,
           },
           (error, result) => {
             if (error) return reject(new Error(error.message));

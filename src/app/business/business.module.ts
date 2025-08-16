@@ -3,10 +3,10 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { BusinessController } from './business.controller';
 import { BusinessService } from './business.service';
-import { DocumentModule } from '../document/document.module';
+import { BusinessAssetsModule } from 'src/assets/business/business-assets.module';
 
 @Module({
-  imports: [PrismaModule, CloudinaryModule, DocumentModule],
+  imports: [PrismaModule, CloudinaryModule, BusinessAssetsModule],
   controllers: [BusinessController],
   providers: [BusinessService],
   exports: [BusinessService],

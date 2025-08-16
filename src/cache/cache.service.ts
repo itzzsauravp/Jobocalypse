@@ -27,7 +27,7 @@ function deserialize<T>(value: string): T {
 export class CacheService {
   constructor(@Inject(REDIS_CLIENT) private readonly redisClient: Redis) {}
 
-  async set(key: string, value: unknown, ttlSeconds: number = 1_08_000) {
+  async set(key: string, value: unknown, ttlSeconds: number = 1_800) {
     await this.redisClient.set(key, serialize(value), 'EX', ttlSeconds);
   }
 

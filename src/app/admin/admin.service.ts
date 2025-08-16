@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { hash } from 'bcryptjs';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 import { Admin } from 'generated/prisma';
@@ -16,6 +15,13 @@ export class AdminService {
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
+      include: {
+        assets: {
+          where: { type: 'PROFILE_PIC' },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
+        },
+      },
     });
     const totalCount = await this.prismaService.admin.count();
     return {
@@ -31,6 +37,13 @@ export class AdminService {
       where: {
         id,
       },
+      include: {
+        assets: {
+          where: { type: 'PROFILE_PIC' },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
+        },
+      },
     });
     if (!admin) throw new NotFoundException('Admin not found');
     return admin;
@@ -40,6 +53,13 @@ export class AdminService {
     const admin = await this.prismaService.admin.findUnique({
       where: {
         email,
+      },
+      include: {
+        assets: {
+          where: { type: 'PROFILE_PIC' },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
+        },
       },
     });
     if (!admin) return null;

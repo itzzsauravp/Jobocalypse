@@ -25,7 +25,6 @@ export class BusinessController {
     @Body() dto: CreateBusinessAccDTO,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    console.log(files);
     return this.businessService.create(request.entity.id, dto, files);
   }
 }

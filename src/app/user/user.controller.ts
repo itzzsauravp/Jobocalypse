@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   Patch,
   Post,
   Request,
@@ -17,9 +16,9 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UpdateUserDTO } from './dtos/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
+import { UserAssetsService } from 'src/assets/user/user-assets.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('user')
@@ -27,7 +26,7 @@ import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly userAssetsService: UserAssetsService,
   ) {}
 
   @Get()
@@ -42,16 +41,16 @@ export class UserController {
     @Request() request: ExpRequest,
     @Body() data: UpdateUserDTO,
   ): ReturnType<typeof this.userService.update> {
-    const user = await this.userService.findByID(request.entity.id);
+    const user = await this.userService.findByIDNoAssets(request.entity.id);
     const updatedData: UpdateUserDTO = Object.assign(user, data);
     return await this.userService.update(request.entity.id, updatedData);
   }
 
   @Delete()
-  async softDeleteUser(
+  async deleteUser(
     @Request() request: ExpRequest,
-  ): ReturnType<typeof this.userService.softDelete> {
-    return this.userService.softDelete(request.entity.id);
+  ): ReturnType<typeof this.userService.delete> {
+    return this.userService.delete(request.entity.id);
   }
 
   @ResponseMessage('profile picture updated successfully')
@@ -61,30 +60,9 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
-    console.log(file);
-    const user = await this.userService.findByID(request.entity.id);
-    const uploadedResult = await this.cloudinaryService.uploadAvatar(
-      file,
-      'user',
+    return await this.userAssetsService.saveProfilePicture(
       request.entity.id,
-      user.profilePic ? true : false,
+      file,
     );
-    const updatedUser = await this.userService.update(request.entity.id, {
-      profilePic: uploadedResult.secure_url as string,
-      publicID: uploadedResult.public_id as string,
-    });
-    return updatedUser;
-  }
-
-  @ResponseMessage('avatar removed sucessfully')
-  @Delete('avatar')
-  async removeAvatar(@Request() request: ExpRequest) {
-    const user = await this.userService.findByID(request.entity.id);
-    const result = await this.cloudinaryService.deleteFile(
-      user.publicID as string,
-    );
-    if (result?.data.result !== 'ok')
-      throw new InternalServerErrorException('Error while removing avatar');
-    return result;
   }
 }

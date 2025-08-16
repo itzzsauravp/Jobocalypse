@@ -32,6 +32,13 @@ enum STATUS {
   REJECTED @map("rejected")
 }
 
+enum ASSETS_TYPE {
+  PROFILE_PIC @map("profile_pic")
+  DOCUMENT @map("document")
+  BANNER_IMAGE @map("banner_image")
+  IMAGE @map("image")
+}
+
 model User {
   id String @id @default(uuid()) @db.Uuid
 
@@ -41,13 +48,11 @@ model User {
   password String?
   address String?
   bio String?
-  documents Documents[]
+  assets UserAssets[]
   phoneNumber String?
   refreshToken String?
   isVerified Boolean @default(false)
   isDeleted Boolean @default(false)
-  profilePic String?
-  publicID String?
   provider String?
   providerID String?
   worksAtID String? @db.Uuid // this has no use right now.
@@ -58,6 +63,18 @@ model User {
   businessAccount Business? @relation(name: "BusinessOwner")
 }
 
+model UserAssets {
+  id String @id @default(uuid()) @db.Uuid
+  secureUrl String
+  publicId String?
+  type ASSETS_TYPE
+  format String?
+  uploadedAt DateTime @default(now())
+
+  user User @relation(fields: [userID], references: [id])
+  userID String @db.Uuid
+}
+
 model Business {
   id String @id @default(uuid()) @db.Uuid
   
@@ -66,7 +83,7 @@ model Business {
   description String?
   address String
   phoneNumber String
-  documents Documents[]
+  assets BusinessAssets[]
   vacancies Vacancy[]
   status STATUS @default(PENDING)
   isVerified Boolean @default(false)
@@ -80,20 +97,17 @@ model Business {
   updatedAt DateTime @updatedAt
 }
 
-model Documents {
+model BusinessAssets {
   id String @id @default(uuid()) @db.Uuid
-  secureURL String
-  publicID String
-  type String
+  secureUrl String
+  publicId String
+  type ASSETS_TYPE
   format String
   uploadedAt DateTime @default(now())
   status STATUS @default(PENDING)
 
-  business Business? @relation(fields: [businessID], references: [id])
-  businessID String? @db.Uuid
-
-  user User? @relation(fields: [userID], references: [id])
-  userID String? @db.Uuid
+  business Business @relation(fields: [businessID], references: [id])
+  businessID String @db.Uuid
 }
 
 model Vacancy {
@@ -105,7 +119,7 @@ model Vacancy {
   tags String[]
   type VACANCY_TYPE
   level VACANCY_LEVEL[]
-  images String[] @default([])
+  assets VacancyAssets[]
   isActive Boolean @default(false)
   isDeleted Boolean @default(false)
   createdAt DateTime @default(now())
@@ -113,6 +127,18 @@ model Vacancy {
 
   business Business @relation(fields: [businessID], references: [id])
   businessID String @db.Uuid
+}
+
+model VacancyAssets {
+  id String @id @default(uuid()) @db.Uuid
+  secureUrl String
+  publicId String
+  type ASSETS_TYPE
+  format String
+  uploadedAt DateTime @default(now())
+
+  vacancy Vacancy @relation(fields: [vacancyID], references: [id])
+  vacancyID String @db.Uuid
 }
 
 model Admin {
@@ -125,8 +151,19 @@ model Admin {
   address String?
   phoneNumber String?
   refreshToken String?
-  profilePic String?
-  publicID String?
+  assets AdminAssets[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AdminAssets {
+  id String @id @default(uuid()) @db.Uuid
+  secureUrl String
+  publicId String?
+  type ASSETS_TYPE
+  format String?
+  uploadedAt DateTime @default(now())
+
+  admin Admin @relation(fields: [adminID], references: [id])
+  adminID String @db.Uuid
 }

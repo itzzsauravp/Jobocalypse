@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   Param,
   Patch,
   Post,
@@ -25,7 +24,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
-import { Vacancy } from 'generated/prisma';
+import { STATUS, Vacancy } from 'generated/prisma';
+import { BusinessService } from '../business/business.service';
+import { AdminAssetsService } from 'src/assets/admin/admin-assets.service';
+import { UploadApiResponse } from 'cloudinary';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('admin')
@@ -35,7 +37,9 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly userService: UserService,
     private readonly vacancyService: VacancyService,
+    private readonly businessService: BusinessService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly adminAssetsService: AdminAssetsService,
   ) {}
 
   // ========================= ADMIN ROUTES ===================================
@@ -70,75 +74,19 @@ export class AdminController {
     @UploadedFile() file: Express.Multer.File,
     @Request() request: ExpRequest,
   ) {
-    const admin = await this.adminService.findByID(request.entity.id);
-    const uploadedResult = await this.cloudinaryService.uploadAvatar(
+    const uploadedResult = (await this.cloudinaryService.uploadAvatar(
       file,
       'admin',
       request.entity.id,
-      admin.profilePic ? true : false,
+    )) as UploadApiResponse;
+    await this.adminAssetsService.saveProfilePicture(
+      request.entity.id,
+      uploadedResult.secure_url,
+      uploadedResult.public_id,
     );
-    const updatedAdmin = await this.adminService.update(request.entity.id, {
-      profilePic: uploadedResult.secure_url as string,
-      publicID: uploadedResult.public_id as string,
-    });
-    return updatedAdmin;
-  }
-
-  @ResponseMessage('avatar removed sucessfully')
-  @Delete('avatar')
-  async removeAvatar(@Request() request: ExpRequest) {
-    const admin = await this.adminService.findByID(request.entity.id);
-    const result = await this.cloudinaryService.deleteFile(
-      admin.publicID as string,
-    );
-    if (result?.data.result !== 'ok')
-      throw new InternalServerErrorException('Error while removing avatar');
-    return result;
   }
 
   // ========================= USER ROUTES ===================================
-
-  @Delete('user/delete')
-  async bulkDeleteUsers(
-    @Body('ids') ids: Array<string>,
-    @Body('status') status: boolean,
-  ): ReturnType<typeof this.userService.bulkSoftDelete> {
-    return this.userService.bulkSoftDelete(ids, status);
-  }
-
-  @Post('user/verification')
-  async bulkUpdateUserVerificationStatus(
-    @Body('ids') ids: Array<string>,
-    @Body('status') status: boolean,
-  ): ReturnType<typeof this.userService.bulkUpdateVerficationStatus> {
-    return this.userService.bulkUpdateVerficationStatus(ids, status);
-  }
-
-  @ResponseMessage('verification status updated')
-  @Post('user/:id/verification')
-  async udpateVerifcationStatusUser(
-    @Body('status') status: boolean,
-    @Param('id') id: string,
-  ): ReturnType<typeof this.userService.updateVerificationStatus> {
-    return await this.userService.updateVerificationStatus(id, status);
-  }
-
-  @ResponseMessage('deletion status updated')
-  @Delete('user/:id')
-  async softDeleteUser(
-    @Body('status') status: boolean,
-    @Param('id') id: string,
-  ): ReturnType<typeof this.userService.updateDeleteStatus> {
-    return await this.userService.updateDeleteStatus(id, status);
-  }
-
-  @ResponseMessage('access revoked')
-  @Post('user/:id/access-revoke')
-  async revokeAccessUser(
-    @Param('id') id: string,
-  ): ReturnType<typeof this.userService.revokeAccess> {
-    return await this.userService.revokeAccess(id);
-  }
 
   @Get('user/all')
   async findAllUsers(
@@ -154,12 +102,49 @@ export class AdminController {
     return await this.userService.findByID(id);
   }
 
-  // ========================= VACANCY ROUTES ===================================
-
-  @Delete('vacancy/:id')
-  async deleteVacancy(@Param('id') id: string): Promise<Vacancy> {
-    return await this.vacancyService.deleteVacancyAdmin(id);
+  @ResponseMessage('verification status updated')
+  @Patch('user/:id/verification')
+  async udpateVerifcationStatusUser(
+    @Body('status') status: boolean,
+    @Param('id') id: string,
+  ): ReturnType<typeof this.userService.updateVerificationStatus> {
+    return await this.userService.updateVerificationStatus(id, status);
   }
+
+  @ResponseMessage('access revoked')
+  @Patch('user/:id/access-revoke')
+  async revokeAccessUser(
+    @Param('id') id: string,
+  ): ReturnType<typeof this.userService.revokeAccess> {
+    return await this.userService.revokeAccess(id);
+  }
+
+  @ResponseMessage('deletion status updated')
+  @Delete('user/:id/delete')
+  async softDeleteUser(
+    @Body('status') status: boolean,
+    @Param('id') id: string,
+  ): ReturnType<typeof this.userService.updateDeleteStatus> {
+    return await this.userService.updateDeleteStatus(id, status);
+  }
+
+  @Delete('user/delete')
+  async bulkDeleteUsers(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.userService.bulkUpdateDeletionStatus> {
+    return this.userService.bulkUpdateDeletionStatus(ids, status);
+  }
+
+  @Patch('user/verification')
+  async bulkUpdateUserVerificationStatus(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.userService.bulkUpdateVerficationStatus> {
+    return this.userService.bulkUpdateVerficationStatus(ids, status);
+  }
+
+  // ========================= VACANCY ROUTES ===================================
 
   @Get('vacancy/all')
   async findAllVacVacancy(
@@ -173,5 +158,74 @@ export class AdminController {
     @Param('id') id: string,
   ): ReturnType<typeof this.vacancyService.findByID> {
     return this.vacancyService.findByID(id);
+  }
+
+  @Delete('vacancy/:id')
+  async deleteVacancy(@Param('id') id: string): Promise<Vacancy> {
+    return await this.vacancyService.deleteVacancyAdmin(id);
+  }
+
+  // ========================= BUSINESS ROUTES ===================================
+
+  @Get('business/all')
+  async findAllBusiness(
+    @Query() dto: PaginationDTO,
+  ): ReturnType<typeof this.businessService.findAll> {
+    return await this.businessService.findAll(dto);
+  }
+
+  @Get('business/:id')
+  async findBusinessByID(
+    @Param() id: string,
+  ): ReturnType<typeof this.businessService.findByID> {
+    return await this.businessService.findByID(id);
+  }
+
+  @Patch('business/:id/status')
+  async updateBusinessStatus(
+    @Param() id: string,
+    @Body('status') status: STATUS,
+  ): ReturnType<typeof this.businessService.updateStatus> {
+    return await this.businessService.updateStatus(id, status);
+  }
+
+  @Patch('business/:id/verification')
+  async updateBusinessVerificationStatus(
+    @Param() id: string,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.businessService.updateVerificationStatus> {
+    return await this.businessService.updateVerificationStatus(id, status);
+  }
+
+  @Delete('business/:id/deletion')
+  async updateBusinessDeletionStatus(
+    @Param() id: string,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.businessService.updateDeletionStatus> {
+    return await this.businessService.updateDeletionStatus(id, status);
+  }
+
+  @Patch('business/status')
+  async bulkUpdateBusinessStatus(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: STATUS,
+  ): ReturnType<typeof this.businessService.bulkUpdateStatus> {
+    return await this.businessService.bulkUpdateStatus(ids, status);
+  }
+
+  @Patch('business/verification')
+  async bulkUpdateBusinessVerificationStatus(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.businessService.bulkUpdateVerificationStatus> {
+    return await this.businessService.bulkUpdateVerificationStatus(ids, status);
+  }
+
+  @Delete('business/deletion')
+  async bulkUpdateBusinessDeletionStatus(
+    @Body('ids') ids: Array<string>,
+    @Body('status') status: boolean,
+  ): ReturnType<typeof this.businessService.bulkUpdateDeletionStatus> {
+    return await this.businessService.bulkUpdateDeletionStatus(ids, status);
   }
 }

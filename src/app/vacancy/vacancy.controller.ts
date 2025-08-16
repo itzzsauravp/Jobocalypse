@@ -8,6 +8,8 @@ import {
   Request,
   Body,
   Get,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { VacancyService } from './vacancy.service';
 import { RoleGuard } from 'src/common/guards/role.guard';
@@ -16,6 +18,7 @@ import type { Request as ExpRequest } from 'express';
 import { UpdateVacancyDTO } from './dtos/update-vacancy.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('vacancy')
@@ -30,11 +33,13 @@ export class VacancyController {
   }
 
   @Post()
+  @UseInterceptors(FilesInterceptor('files', 3))
   async createVacancy(
     @Body() dto: CreateVacancyDTO,
     @Request() request: ExpRequest,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ): ReturnType<typeof this.vacancyService.createVacancy> {
-    return this.vacancyService.createVacancy(request.entity.id, dto);
+    return this.vacancyService.createVacancy(request.entity.id, dto, files);
   }
 
   @ResponseMessage('vacancy updated successfully')

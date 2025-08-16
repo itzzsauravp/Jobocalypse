@@ -9,14 +9,15 @@ import { Business, STATUS } from 'generated/prisma';
 import { UpdateBusinessAccDTO } from './dtos/update-business-acc.dto';
 import { PaginationDTO } from 'src/common/dtos/pagination.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { DocumentService } from '../document/document.service';
+import { UploadApiResponse } from 'cloudinary';
+import { BusinessAssetsService } from 'src/assets/business/business-assets.service';
 
 @Injectable()
 export class BusinessService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly clodinaryService: CloudinaryService,
-    private readonly documentService: DocumentService,
+    private readonly businessAssetsService: BusinessAssetsService,
   ) {}
 
   async findAll(dto: PaginationDTO) {
@@ -63,35 +64,29 @@ export class BusinessService {
     dto: CreateBusinessAccDTO,
     files: Array<Express.Multer.File>,
   ) {
-    const cloudinaryResult = await this.clodinaryService.documentsUpload(
+    const cloudinaryResult = (await this.clodinaryService.multiFileUpload(
       files,
+      'documents',
       'user',
       id,
-      false,
-    );
+    )) as UploadApiResponse[];
     try {
       const result = await this.prismaService.$transaction(async () => {
-        const businessAccountToBeVerified =
-          await this.prismaService.business.create({
-            data: {
-              owner: { connect: { id } },
-              address: dto.address,
-              description: dto.description,
-              name: dto.name,
-              phoneNumber: dto.phoneNumber,
-              website: dto.website,
-            },
-          });
-        await this.documentService.createMultipleDocsBusiness(
-          businessAccountToBeVerified.id,
-          cloudinaryResult.map((item) => ({
-            format: (item.format as string) || 'unknown',
-            publicID: item.public_id as string,
-            secureURL: item.secure_url as string,
-            type: item.type as string,
-          })),
+        const business = await this.prismaService.business.create({
+          data: {
+            owner: { connect: { id } },
+            address: dto.address,
+            description: dto.description,
+            name: dto.name,
+            phoneNumber: dto.phoneNumber,
+            website: dto.website,
+          },
+        });
+        await this.businessAssetsService.saveDocumentsInBulk(
+          business.id,
+          cloudinaryResult,
         );
-        return businessAccountToBeVerified;
+        return business;
       });
       return {
         account: result,
@@ -99,12 +94,19 @@ export class BusinessService {
       };
     } catch {
       await this.clodinaryService.bulkDeleteFiles(
-        cloudinaryResult.map((item) => item.public_id as string),
+        cloudinaryResult.map((item) => item.public_id),
       );
       throw new InternalServerErrorException(
         'Something went wrong! Try again later',
       );
     }
+  }
+
+  async delete(businessID: string) {
+    return await this.prismaService.business.update({
+      where: { id: businessID },
+      data: { isDeleted: true },
+    });
   }
 
   async update(businessID: string, dto: UpdateBusinessAccDTO) {
@@ -122,7 +124,7 @@ export class BusinessService {
   async updateVerificationStatus(businessID: string, status: boolean) {
     return await this.prismaService.business.update({
       where: { id: businessID },
-      data: { isVerified: status },
+      data: { isVerified: status, verifiedAt: new Date() },
     });
   }
 
@@ -137,6 +139,37 @@ export class BusinessService {
     return await this.prismaService.business.update({
       where: { id: businessID },
       data: { status },
+    });
+  }
+
+  async bulkUpdateVerificationStatus(
+    businessIDs: Array<string>,
+    status: boolean,
+  ) {
+    return this.prismaService.business.updateMany({
+      data: {
+        isVerified: status,
+        verifiedAt: new Date(),
+      },
+      where: { id: { in: businessIDs } },
+    });
+  }
+
+  async bulkUpdateDeletionStatus(businessIDs: Array<string>, status: boolean) {
+    return this.prismaService.business.updateMany({
+      data: {
+        isDeleted: status,
+      },
+      where: { id: { in: businessIDs } },
+    });
+  }
+
+  async bulkUpdateStatus(businessIDs: Array<string>, status: STATUS) {
+    return this.prismaService.business.updateMany({
+      data: {
+        status,
+      },
+      where: { id: { in: businessIDs } },
     });
   }
 }
