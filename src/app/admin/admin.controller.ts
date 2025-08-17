@@ -22,7 +22,7 @@ import { UpdateAdminDTO } from './dtos/update-admin.dto';
 import { VacancyService } from 'src/app/vacancy/vacancy.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { AdminQueryFilters } from 'src/common/dtos/pagination.dto';
 import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
 import { STATUS, Vacancy } from 'generated/prisma';
 import { BusinessService } from '../business/business.service';
@@ -90,7 +90,7 @@ export class AdminController {
 
   @Get('user/all')
   async findAllUsers(
-    @Query() dto: PaginationDTO,
+    @Query() dto: AdminQueryFilters,
   ): ReturnType<typeof this.userService.findAll> {
     return await this.userService.findAll(dto);
   }
@@ -103,7 +103,7 @@ export class AdminController {
   }
 
   @ResponseMessage('verification status updated')
-  @Patch('user/:id/verification')
+  @Patch('user/:id/verify')
   async udpateVerifcationStatusUser(
     @Body('status') status: boolean,
     @Param('id') id: string,
@@ -136,7 +136,7 @@ export class AdminController {
     return this.userService.bulkUpdateDeletionStatus(ids, status);
   }
 
-  @Patch('user/verification')
+  @Patch('user/verify')
   async bulkUpdateUserVerificationStatus(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,
@@ -148,7 +148,7 @@ export class AdminController {
 
   @Get('vacancy/all')
   async findAllVacVacancy(
-    @Query() dto: PaginationDTO,
+    @Query() dto: AdminQueryFilters,
   ): ReturnType<typeof this.vacancyService.findAll> {
     return await this.vacancyService.findAll(dto);
   }
@@ -160,46 +160,57 @@ export class AdminController {
     return this.vacancyService.findByID(id);
   }
 
-  @Delete('vacancy/:id')
-  async deleteVacancy(@Param('id') id: string): Promise<Vacancy> {
-    return await this.vacancyService.deleteVacancyAdmin(id);
+  @Delete('vacancy/:id/delete')
+  async deleteVacancy(
+    @Param('id') id: string,
+    @Body('status') status: boolean,
+  ): Promise<Vacancy> {
+    return await this.vacancyService.updateDeletionStatus(id, status);
+  }
+
+  @Delete('vacancy/delete')
+  async bulkUpdateVacancyDeletionStatus(
+    @Param('ids') ids: string[],
+    @Body('status') status: boolean,
+  ): Promise<string> {
+    return await this.vacancyService.bulkUpdateDeletionStatus(ids, status);
   }
 
   // ========================= BUSINESS ROUTES ===================================
 
   @Get('business/all')
   async findAllBusiness(
-    @Query() dto: PaginationDTO,
+    @Query() dto: AdminQueryFilters,
   ): ReturnType<typeof this.businessService.findAll> {
     return await this.businessService.findAll(dto);
   }
 
   @Get('business/:id')
   async findBusinessByID(
-    @Param() id: string,
+    @Param('id') id: string,
   ): ReturnType<typeof this.businessService.findByID> {
     return await this.businessService.findByID(id);
   }
 
   @Patch('business/:id/status')
   async updateBusinessStatus(
-    @Param() id: string,
+    @Param('id') id: string,
     @Body('status') status: STATUS,
   ): ReturnType<typeof this.businessService.updateStatus> {
     return await this.businessService.updateStatus(id, status);
   }
 
-  @Patch('business/:id/verification')
+  @Patch('business/:id/verify')
   async updateBusinessVerificationStatus(
-    @Param() id: string,
+    @Param('id') id: string,
     @Body('status') status: boolean,
   ): ReturnType<typeof this.businessService.updateVerificationStatus> {
     return await this.businessService.updateVerificationStatus(id, status);
   }
 
-  @Delete('business/:id/deletion')
+  @Delete('business/:id/delete')
   async updateBusinessDeletionStatus(
-    @Param() id: string,
+    @Param('id') id: string,
     @Body('status') status: boolean,
   ): ReturnType<typeof this.businessService.updateDeletionStatus> {
     return await this.businessService.updateDeletionStatus(id, status);
@@ -213,7 +224,7 @@ export class AdminController {
     return await this.businessService.bulkUpdateStatus(ids, status);
   }
 
-  @Patch('business/verification')
+  @Patch('business/verify')
   async bulkUpdateBusinessVerificationStatus(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,
@@ -221,7 +232,7 @@ export class AdminController {
     return await this.businessService.bulkUpdateVerificationStatus(ids, status);
   }
 
-  @Delete('business/deletion')
+  @Delete('business/delete')
   async bulkUpdateBusinessDeletionStatus(
     @Body('ids') ids: Array<string>,
     @Body('status') status: boolean,

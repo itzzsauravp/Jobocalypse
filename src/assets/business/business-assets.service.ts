@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UploadApiResponse } from 'cloudinary';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ASSETS_TYPE } from 'generated/prisma';
+import { ASSETS_TYPE, Prisma } from 'generated/prisma';
 import { STATUS } from 'generated/prisma';
 
 @Injectable()
@@ -9,6 +9,7 @@ export class BusinessAssetsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async saveDocumentsInBulk(
+    tsx: Prisma.TransactionClient,
     businessID: string,
     cloudinaryResult: UploadApiResponse[],
   ): Promise<{ count: number }> {
@@ -20,7 +21,7 @@ export class BusinessAssetsService {
       type: ASSETS_TYPE.DOCUMENT,
       businessID,
     }));
-    return await this.prismaService.businessAssets.createMany({
+    return await tsx.businessAssets.createMany({
       data: documentsList,
     });
   }

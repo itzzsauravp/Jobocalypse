@@ -40,4 +40,20 @@ export class CacheService {
   async del(key: string) {
     await this.redisClient.del(key);
   }
+
+  deleteByPattern(pattern: string) {
+    console.log('pattern: ', `${pattern}:*`);
+    const stream = this.redisClient.scanStream({
+      match: `${pattern}:*`,
+    });
+    console.log('stream: ', stream);
+    stream.on('data', (resultKey: Array<string>) => {
+      console.log('resultkey: ', resultKey);
+      for (const key of resultKey) {
+        this.del(key)
+          .then()
+          .catch((error) => console.log(error));
+      }
+    });
+  }
 }

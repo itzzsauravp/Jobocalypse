@@ -2,12 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { hash } from 'bcryptjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
-import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { AdminQueryFilters } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 import { User } from 'generated/prisma';
 import { GenericOAuthEntity } from '../auth/common/interface/auth.interface';
 import { UserAssetsService } from 'src/assets/user/user-assets.service';
 import { CacheService } from 'src/cache/cache.service';
+import { ADMIN_ALL_USERS_CACHES } from 'src/cache/cache.constants';
 
 @Injectable()
 export class UserService {
@@ -17,13 +18,13 @@ export class UserService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async findAll(dto: PaginationDTO): Promise<PaginatedData<Array<User>>> {
-    const { page, limit } = dto;
+  async findAll(dto: AdminQueryFilters): Promise<PaginatedData<Array<User>>> {
+    const { page, limit, deleted, verified, business } = dto;
     const skip = (page - 1) * limit;
-    let cachedUser = await this.cacheService.get<Array<User>>(
-      'admin:paginated-user',
+    let cachedUsers = await this.cacheService.get<Array<User>>(
+      `${ADMIN_ALL_USERS_CACHES}:${JSON.stringify(dto)}`,
     );
-    if (!cachedUser) {
+    if (!cachedUsers) {
       const users = await this.prismaService.user.findMany({
         skip,
         take: limit,
@@ -35,13 +36,23 @@ export class UserService {
             take: 1,
           },
         },
+        where: {
+          ...(deleted && { isDeleted: deleted }),
+          ...(verified && { isVerified: verified }),
+          ...(business && { isBusinessAccount: business }),
+        },
       });
-      await this.cacheService.set('admin:paginated-user', users);
-      cachedUser = users;
+      cachedUsers = users;
+      if (users) {
+        await this.cacheService.set(
+          `${ADMIN_ALL_USERS_CACHES}:${JSON.stringify(dto)}`,
+          users,
+        );
+      }
     }
     const totalCount = await this.prismaService.user.count();
     return {
-      data: cachedUser,
+      data: cachedUsers,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),

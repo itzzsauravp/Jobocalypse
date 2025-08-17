@@ -17,10 +17,11 @@ datasource db {
 enum VACANCY_TYPE {
   ON_SITE @map("on-site")
   REMOTE @map("remote")
+  HYBRID @map("hybrid")
 }
 
 enum VACANCY_LEVEL {
-  FRESHERS @map("freshers")
+  FRESHER @map("fresher")
   JUNIOR @map("junior")
   MID_LEVEL @map("mid-level")
   SENIOR @map("senior")

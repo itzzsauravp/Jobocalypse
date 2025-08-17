@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateBusinessAccDTO {
   @IsOptional()
@@ -9,13 +9,11 @@ export class UpdateBusinessAccDTO {
   @IsString()
   description: string;
 
+  @IsOptional()
   @IsString()
   address: string;
 
+  @IsOptional()
   @IsString()
   phoneNumber: string;
-
-  @IsArray()
-  @IsString()
-  documents: string[];
 }

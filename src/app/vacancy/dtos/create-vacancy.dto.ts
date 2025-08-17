@@ -17,7 +17,7 @@ export class CreateVacancyDTO {
   type: VACANCY_TYPE;
 
   @IsArray()
-  @IsEnum(VACANCY_LEVEL)
+  @IsEnum(VACANCY_LEVEL, { each: true })
   level: VACANCY_LEVEL[];
 
   @IsArray()

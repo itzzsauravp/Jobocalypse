@@ -5,12 +5,14 @@ import {
 } from '@nestjs/common';
 import { CreateBusinessAccDTO } from './dtos/create-business-acc.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Business, STATUS } from 'generated/prisma';
+import { Business, Prisma, STATUS } from 'generated/prisma';
 import { UpdateBusinessAccDTO } from './dtos/update-business-acc.dto';
-import { PaginationDTO } from 'src/common/dtos/pagination.dto';
+import { AdminQueryFilters } from 'src/common/dtos/pagination.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
 import { BusinessAssetsService } from 'src/assets/business/business-assets.service';
+import { CacheService } from 'src/cache/cache.service';
+import { ADMIN_ALL_BUSINESSES_CACHE } from 'src/cache/cache.constants';
 
 @Injectable()
 export class BusinessService {
@@ -18,37 +20,60 @@ export class BusinessService {
     private readonly prismaService: PrismaService,
     private readonly clodinaryService: CloudinaryService,
     private readonly businessAssetsService: BusinessAssetsService,
+    private readonly cacheService: CacheService,
   ) {}
 
-  async findAll(dto: PaginationDTO) {
-    const { page, limit } = dto;
+  async findAll(dto: AdminQueryFilters) {
+    const { page, limit, verified, deleted } = dto;
     const skip = (page - 1) * limit;
     const totalCount = await this.prismaService.business.count();
-    const businesses = await this.prismaService.business.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    });
+    let cachedBusinesses = await this.cacheService.get(
+      `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
+    );
+    if (!cachedBusinesses) {
+      const businesses = await this.prismaService.business.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        where: {
+          ...(deleted && { isDeleted: deleted }),
+          ...(verified && { isDeleted: verified }),
+        },
+      });
+      cachedBusinesses = businesses;
+      if (businesses) {
+        await this.cacheService.set(
+          `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
+          businesses,
+        );
+      }
+    }
     return {
-      data: businesses,
+      data: cachedBusinesses,
       totalCount,
       currentPage: page,
       totalPage: Math.ceil(totalCount / limit),
     };
   }
 
-  async findByOwnerID(userID: string): Promise<Business> {
+  async findByOwnerID(
+    userID: string,
+    includeDocuments: boolean = false,
+  ): Promise<Business | null> {
     const business = await this.prismaService.business.findUnique({
       where: {
         userID,
       },
+      ...(includeDocuments && {
+        include: { assets: { where: { type: 'DOCUMENT' } } },
+      }),
     });
-    if (!business)
-      throw new BadRequestException('User doesnot own any business');
+    if (!business) return null;
     return business;
   }
 
   async findByID(businessID: string): Promise<Business> {
+    console.log(businessID);
     const business = await this.prismaService.business.findUnique({
       where: {
         id: businessID,
@@ -58,12 +83,19 @@ export class BusinessService {
     return business;
   }
 
-  // refech the data again ? for just documents but this a transaction so i already know the document is going to be there is i get the result.
   async create(
     id: string,
     dto: CreateBusinessAccDTO,
     files: Array<Express.Multer.File>,
   ) {
+    if (!files.length) {
+      throw new BadRequestException(
+        'Documents missing, Please pass the required documents',
+      );
+    }
+    const existingBusiness = await this.findByOwnerID(id);
+    if (existingBusiness)
+      throw new BadRequestException('The user already owns a business account');
     const cloudinaryResult = (await this.clodinaryService.multiFileUpload(
       files,
       'documents',
@@ -71,23 +103,26 @@ export class BusinessService {
       id,
     )) as UploadApiResponse[];
     try {
-      const result = await this.prismaService.$transaction(async () => {
-        const business = await this.prismaService.business.create({
-          data: {
-            owner: { connect: { id } },
-            address: dto.address,
-            description: dto.description,
-            name: dto.name,
-            phoneNumber: dto.phoneNumber,
-            website: dto.website,
-          },
-        });
-        await this.businessAssetsService.saveDocumentsInBulk(
-          business.id,
-          cloudinaryResult,
-        );
-        return business;
-      });
+      const result = await this.prismaService.$transaction(
+        async (tsx: Prisma.TransactionClient) => {
+          const business = await tsx.business.create({
+            data: {
+              owner: { connect: { id } },
+              address: dto.address,
+              description: dto.description,
+              name: dto.name,
+              phoneNumber: dto.phoneNumber,
+              website: dto.website,
+            },
+          });
+          await this.businessAssetsService.saveDocumentsInBulk(
+            tsx,
+            business.id,
+            cloudinaryResult,
+          );
+          return business;
+        },
+      );
       return {
         account: result,
         message: 'verification pending from admin',
@@ -102,16 +137,16 @@ export class BusinessService {
     }
   }
 
-  async delete(businessID: string) {
+  async delete(userID: string) {
     return await this.prismaService.business.update({
-      where: { id: businessID },
+      where: { userID },
       data: { isDeleted: true },
     });
   }
 
-  async update(businessID: string, dto: UpdateBusinessAccDTO) {
+  async update(userID: string, dto: UpdateBusinessAccDTO) {
     return await this.prismaService.business.update({
-      where: { id: businessID },
+      where: { userID },
       data: {
         website: dto.website,
         description: dto.description,
@@ -124,7 +159,10 @@ export class BusinessService {
   async updateVerificationStatus(businessID: string, status: boolean) {
     return await this.prismaService.business.update({
       where: { id: businessID },
-      data: { isVerified: status, verifiedAt: new Date() },
+      data: {
+        isVerified: status,
+        verifiedAt: status ? new Date().toISOString() : null,
+      },
     });
   }
 
@@ -146,22 +184,24 @@ export class BusinessService {
     businessIDs: Array<string>,
     status: boolean,
   ) {
-    return this.prismaService.business.updateMany({
+    const result = await this.prismaService.business.updateMany({
       data: {
         isVerified: status,
-        verifiedAt: new Date(),
+        verifiedAt: status ? new Date().toISOString() : null,
       },
       where: { id: { in: businessIDs } },
     });
+    return `${result.count} business verification status set to ${status}`;
   }
 
   async bulkUpdateDeletionStatus(businessIDs: Array<string>, status: boolean) {
-    return this.prismaService.business.updateMany({
+    const result = await this.prismaService.business.updateMany({
       data: {
         isDeleted: status,
       },
       where: { id: { in: businessIDs } },
     });
+    return `${result.count} business deletion status set to ${status}`;
   }
 
   async bulkUpdateStatus(businessIDs: Array<string>, status: STATUS) {

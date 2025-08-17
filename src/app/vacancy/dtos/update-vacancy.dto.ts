@@ -29,7 +29,7 @@ export class UpdateVacancyDTO {
 
   @IsOptional()
   @IsArray()
-  @IsEnum(VACANCY_LEVEL)
+  @IsEnum(VACANCY_LEVEL, { each: true })
   level: VACANCY_LEVEL[];
 
   @IsOptional()
