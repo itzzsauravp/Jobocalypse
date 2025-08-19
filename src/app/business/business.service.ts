@@ -13,6 +13,7 @@ import { UploadApiResponse } from 'cloudinary';
 import { BusinessAssetsService } from 'src/assets/business/business-assets.service';
 import { CacheService } from 'src/cache/cache.service';
 import { ADMIN_ALL_BUSINESSES_CACHE } from 'src/cache/cache.constants';
+import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
 
 @Injectable()
 export class BusinessService {
@@ -23,11 +24,13 @@ export class BusinessService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async findAll(dto: AdminQueryFilters) {
+  async findAll(
+    dto: AdminQueryFilters,
+  ): Promise<PaginatedData<Array<Business>>> {
     const { page, limit, verified, deleted } = dto;
     const skip = (page - 1) * limit;
     const totalCount = await this.prismaService.business.count();
-    let cachedBusinesses = await this.cacheService.get(
+    let cachedBusinesses: Array<Business> | null = await this.cacheService.get(
       `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
     );
     if (!cachedBusinesses) {
@@ -52,7 +55,7 @@ export class BusinessService {
       data: cachedBusinesses,
       totalCount,
       currentPage: page,
-      totalPage: Math.ceil(totalCount / limit),
+      totalPages: Math.ceil(totalCount / limit),
     };
   }
 

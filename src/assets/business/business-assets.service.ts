@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { UploadApiResponse } from 'cloudinary';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { ASSETS_TYPE, Prisma } from 'generated/prisma';
 import { STATUS } from 'generated/prisma';
 
 @Injectable()
 export class BusinessAssetsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor() {}
 
   async saveDocumentsInBulk(
     tsx: Prisma.TransactionClient,
