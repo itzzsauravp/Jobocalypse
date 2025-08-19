@@ -76,7 +76,6 @@ export class BusinessService {
   }
 
   async findByID(businessID: string): Promise<Business> {
-    console.log(businessID);
     const business = await this.prismaService.business.findUnique({
       where: {
         id: businessID,

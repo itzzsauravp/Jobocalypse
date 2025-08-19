@@ -16,8 +16,10 @@ import { CustomThrottlerGuard } from '../common/guards/custom-throttler.guard';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { Request } from 'express';
 import { BusinessModule } from './business/business.module';
+import { EsewaModule } from 'src/payment/esewa/esewa.module';
 @Module({
   imports: [
+    EsewaModule,
     AuthModule,
     UserModule,
     ConfigModule.forRoot({
@@ -44,7 +46,6 @@ import { BusinessModule } from './business/business.module';
         }),
         generateKey: (context: ExecutionContext) => {
           const request: Request = context.switchToHttp().getRequest();
-          console.log(request.ip);
           return `throttler-ip-(${request.ip})`;
         },
       }),

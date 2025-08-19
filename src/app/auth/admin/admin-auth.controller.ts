@@ -21,7 +21,6 @@ export class AdminAuthController {
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
   ): ReturnType<typeof this.adminAuthService.generateToken> {
-    console.log(request.entity);
     return await this.adminAuthService.generateToken(request.entity, response);
   }
 
