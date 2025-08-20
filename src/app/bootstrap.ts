@@ -10,6 +10,11 @@ import { configureGlobalGuards } from '../config/global-guards';
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+
   configureSwagger(app);
   configureGlobalMiddlware(app);
   configureGlobalValidationPipe(app);
@@ -17,5 +22,5 @@ export async function bootstrap() {
   configureGlobalExceptionFilters(app);
   configureGlobalGuards(app);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 8000);
 }

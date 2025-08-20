@@ -6,6 +6,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { VacancyAssetsModule } from 'src/assets/vacancy/vacancy-assets.module';
 import { BusinessModule } from '../business/business.module';
 import { CacheModule } from 'src/cache/cache.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CacheModule } from 'src/cache/cache.module';
     VacancyAssetsModule,
     BusinessModule,
     CacheModule,
+    UserModule,
   ],
   controllers: [VacancyController],
   providers: [VacancyService],

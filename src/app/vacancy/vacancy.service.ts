@@ -15,11 +15,16 @@ import { VacancyAssetsService } from 'src/assets/vacancy/vacancy-assets.service'
 import { BusinessService } from '../business/business.service';
 import {
   AdminQueryFilters,
+  PaginationDTO,
   QueryFitlers,
 } from 'src/common/dtos/pagination.dto';
 import { CacheService } from 'src/cache/cache.service';
-import { ADMIN_ALL_VACANCIES_CACHE } from 'src/cache/cache.constants';
+import {
+  ADMIN_ALL_VACANCIES_CACHE,
+  GENERIC_ALL_VACANCIES_CACHE,
+} from 'src/cache/cache.constants';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class VacancyService {
@@ -29,6 +34,7 @@ export class VacancyService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly vacancyAssetsService: VacancyAssetsService,
     private readonly cacheService: CacheService,
+    private readonly userService: UserService,
   ) {}
 
   async findAll(
@@ -53,6 +59,44 @@ export class VacancyService {
       if (vacancies) {
         await this.cacheService.set(
           `${ADMIN_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+          vacancies,
+        );
+      }
+    }
+    const totalCount = await this.prismaService.vacancy.count();
+    return {
+      data: cachedVacancies,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
+  }
+
+  async findAllGeneric(
+    dto: PaginationDTO,
+  ): Promise<PaginatedData<Array<Vacancy>>> {
+    const { limit, page } = dto;
+    const skip = (page - 1) * limit;
+    let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
+      `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+    );
+    if (!cachedVacancies) {
+      const vacancies = await this.prismaService.vacancy.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          assets: { where: { type: 'IMAGE' } },
+          business: { include: { assets: { where: { type: 'PROFILE_PIC' } } } },
+        },
+        where: {
+          isActive: true,
+        },
+      });
+      cachedVacancies = vacancies;
+      if (vacancies) {
+        await this.cacheService.set(
+          `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
           vacancies,
         );
       }
@@ -95,12 +139,16 @@ export class VacancyService {
   }
 
   async createVacancy(
+    userID: string,
     businessID: string,
     dto: CreateVacancyDTO,
     images: Array<Express.Multer.File>,
   ): Promise<Vacancy> {
     let cloudinaryResult: UploadApiResponse[] = [];
     let vacancy: Vacancy | undefined;
+    const user = await this.userService.findByID(userID);
+    if (!user.isBusinessAccount)
+      throw new UnauthorizedException('this is not a business account');
     const business = await this.businessService.findByID(businessID);
     if (business.status !== 'APPROVED')
       throw new UnauthorizedException('business account not approved');

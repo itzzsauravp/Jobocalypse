@@ -29,6 +29,13 @@ export class VacancyController {
   constructor(private readonly vacancyService: VacancyService) {}
 
   @Get('/all')
+  async findAllVacancy(
+    @Query() dto: QueryFitlers,
+  ): ReturnType<typeof this.vacancyService.findAll> {
+    return await this.vacancyService.findAllGeneric(dto);
+  }
+
+  @Get('/list')
   @UseGuards(JwtAuthGuard, BusinessOwnerGuard)
   async listVacanciesForBusiness(
     @Request() request: ExpRequest,
@@ -48,7 +55,12 @@ export class VacancyController {
     @Request() request: ExpRequest,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ): ReturnType<typeof this.vacancyService.createVacancy> {
-    return this.vacancyService.createVacancy(request.businessID, dto, files);
+    return this.vacancyService.createVacancy(
+      request.entity.id,
+      request.businessID,
+      dto,
+      files,
+    );
   }
 
   @Patch(':id')
