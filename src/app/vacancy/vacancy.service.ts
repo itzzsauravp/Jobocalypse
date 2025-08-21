@@ -75,7 +75,7 @@ export class VacancyService {
   async findAllGeneric(
     dto: PaginationDTO,
   ): Promise<PaginatedData<Array<Vacancy>>> {
-    const { limit, page } = dto;
+    const { page, limit } = dto;
     const skip = (page - 1) * limit;
     let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
       `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
@@ -83,7 +83,7 @@ export class VacancyService {
     if (!cachedVacancies) {
       const vacancies = await this.prismaService.vacancy.findMany({
         skip,
-        take: limit,
+        take: 10,
         orderBy: { createdAt: 'desc' },
         include: {
           assets: { where: { type: 'IMAGE' } },

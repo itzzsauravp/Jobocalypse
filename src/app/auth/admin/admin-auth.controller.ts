@@ -41,4 +41,14 @@ export class AdminAuthController {
   testAdmin(@Request() request: ExpRequest) {
     return { admin_auth_status: true, type: request.entity.type };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@Request() request: ExpRequest) {
+    const { access_token, refresh_token } = request.cookies;
+    return this.adminAuthService.me(
+      access_token as string,
+      refresh_token as string,
+    );
+  }
 }

@@ -16,7 +16,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
     context: ExecutionContext,
   ): any {
     if (err || !user) {
-      throw new UnauthorizedException(err.message);
+      throw new UnauthorizedException();
     }
     const req: Request = context.switchToHttp().getRequest();
     req.entity = user;

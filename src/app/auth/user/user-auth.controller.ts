@@ -102,4 +102,14 @@ export class UserAuthController {
     );
     return response.redirect('/');
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Request() request: ExpRequest) {
+    const { access_token, refresh_token } = request.cookies;
+    return await this.userAuthService.me(
+      access_token as string,
+      refresh_token as string,
+    );
+  }
 }

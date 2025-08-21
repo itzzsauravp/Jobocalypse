@@ -8,9 +8,8 @@ import {
 import { Request, Response } from 'express';
 
 @Catch()
-export class AllExceptionsFilter<T> implements ExceptionFilter {
-  catch(exception: T, host: ArgumentsHost) {
-    console.log(exception);
+export class AllExceptionsFilter implements ExceptionFilter {
+  catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -18,11 +17,9 @@ export class AllExceptionsFilter<T> implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal Server Error';
 
-    if (exception instanceof HttpException) {
-      status = exception.getStatus();
-      const res = exception.getResponse();
-      message = typeof res === 'string' ? res : (res as any).message;
-    }
+    status = exception.getStatus();
+    const res = exception.getResponse();
+    message = typeof res === 'string' ? res : (res as any).message;
     response.status(status).json({
       status: 'error',
       message,

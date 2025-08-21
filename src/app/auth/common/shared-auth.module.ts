@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { CacheService } from 'src/cache/cache.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
@@ -9,6 +10,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     PrismaModule,
     ConfigModule,
     PassportModule,
+    CacheService,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

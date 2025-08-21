@@ -8,6 +8,7 @@ import {
 } from '../common/interface/auth.interface';
 import { compare, hash } from 'bcryptjs';
 import { Response } from 'express';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class AdminAuthService {
@@ -15,6 +16,7 @@ export class AdminAuthService {
     private readonly adminService: AdminService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly cacheService: CacheService,
   ) {}
   async validateEntity(
     email: string,
@@ -30,6 +32,16 @@ export class AdminAuthService {
       throw new UnauthorizedException('Invalid Credentails');
     }
     return { id: user.id, email: user.email, type: 'user' };
+  }
+
+  me(access_token: string, refres_token: string) {
+    const token = access_token ?? refres_token;
+    if (token) {
+      const payload = this.jwtService.decode<TokenPayload>(access_token);
+
+      return this.adminService.findByID(payload.sub);
+    }
+    throw new UnauthorizedException('user not autheticated');
   }
 
   async generateToken(entity: ValidatedEntity, response: Response) {

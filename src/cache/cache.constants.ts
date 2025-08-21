@@ -5,3 +5,6 @@ export const ADMIN_ALL_USERS_CACHES = 'admin:paginated-businesses';
 export const ADMIN_ALL_VACANCIES_CACHE = 'admin:paginated-vacancies';
 
 export const GENERIC_ALL_VACANCIES_CACHE = 'generic:paginated-vacancies';
+
+export const ADMIN_AUTH_ME_CACHE = 'admin:auth:id';
+export const USER_AUTH_ME_CACHE = 'user:auth:id';

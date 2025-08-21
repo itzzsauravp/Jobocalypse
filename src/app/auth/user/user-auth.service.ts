@@ -42,6 +42,14 @@ export class UserAuthService {
     return { id: user.id, email: user.email, type: 'user' };
   }
 
+  me(access_token: string, refres_token: string) {
+    const token = access_token ?? refres_token;
+    if (token) {
+      const payload = this.jwtService.decode<TokenPayload>(access_token);
+      return this.userService.findByID(payload.sub);
+    }
+  }
+
   async signup(dto: CreateUserDTO) {
     if (dto.password !== dto.password2) {
       throw new BadRequestException(
