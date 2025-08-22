@@ -30,29 +30,31 @@ export class BusinessService {
     const { page, limit, verified, deleted } = dto;
     const skip = (page - 1) * limit;
     const totalCount = await this.prismaService.business.count();
-    let cachedBusinesses: Array<Business> | null = await this.cacheService.get(
-      `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
-    );
-    if (!cachedBusinesses) {
-      const businesses = await this.prismaService.business.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(deleted && { isDeleted: deleted }),
-          ...(verified && { isDeleted: verified }),
-        },
-      });
-      cachedBusinesses = businesses;
-      if (businesses) {
-        await this.cacheService.set(
-          `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
-          businesses,
-        );
-      }
-    }
+    // let cachedBusinesses: Array<Business> | null = await this.cacheService.get(
+    //   `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
+    // );
+    // if (!cachedBusinesses) {
+    const businesses = await this.prismaService.business.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      where: {
+        ...(deleted && { isDeleted: deleted }),
+        ...(verified && { isDeleted: verified }),
+      },
+      include: { owner: true },
+    });
+    //   cachedBusinesses = businesses;
+    //   if (businesses) {
+    //     await this.cacheService.set(
+    //       `${ADMIN_ALL_BUSINESSES_CACHE}:${JSON.stringify(dto)}`,
+    //       businesses,
+    //     );
+    //   }
+    // }
     return {
-      data: cachedBusinesses,
+      // data: cachedBusinesses,
+      data: businesses,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),

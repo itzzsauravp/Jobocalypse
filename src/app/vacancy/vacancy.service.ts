@@ -42,30 +42,32 @@ export class VacancyService {
   ): Promise<PaginatedData<Array<Vacancy>>> {
     const { limit, page, deleted, active } = dto;
     const skip = (page - 1) * limit;
-    let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
-      `${ADMIN_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
-    );
-    if (!cachedVacancies) {
-      const vacancies = await this.prismaService.vacancy.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        where: {
-          ...(deleted && { isDeleted: deleted }),
-          ...(active && { isActive: active }),
-        },
-      });
-      cachedVacancies = vacancies;
-      if (vacancies) {
-        await this.cacheService.set(
-          `${ADMIN_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
-          vacancies,
-        );
-      }
-    }
+    // let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
+    //   `${ADMIN_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+    // );
+    // if (!cachedVacancies) {
+    const vacancies = await this.prismaService.vacancy.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      where: {
+        ...(deleted && { isDeleted: deleted }),
+        ...(active && { isActive: active }),
+      },
+      include: { business: true },
+    });
+    //   cachedVacancies = vacancies;
+    //   if (vacancies) {
+    //     await this.cacheService.set(
+    //       `${ADMIN_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+    //       vacancies,
+    //     );
+    //   }
+    // }
     const totalCount = await this.prismaService.vacancy.count();
     return {
-      data: cachedVacancies,
+      // data: cachedVacancies,
+      data: vacancies,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
@@ -77,33 +79,34 @@ export class VacancyService {
   ): Promise<PaginatedData<Array<Vacancy>>> {
     const { page, limit } = dto;
     const skip = (page - 1) * limit;
-    let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
-      `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
-    );
-    if (!cachedVacancies) {
-      const vacancies = await this.prismaService.vacancy.findMany({
-        skip,
-        take: 10,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          assets: { where: { type: 'IMAGE' } },
-          business: { include: { assets: { where: { type: 'PROFILE_PIC' } } } },
-        },
-        where: {
-          isActive: true,
-        },
-      });
-      cachedVacancies = vacancies;
-      if (vacancies) {
-        await this.cacheService.set(
-          `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
-          vacancies,
-        );
-      }
-    }
+    // let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
+    //   `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+    // );
+    // if (!cachedVacancies) {
+    const vacancies = await this.prismaService.vacancy.findMany({
+      skip,
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        assets: { where: { type: 'IMAGE' } },
+        business: { include: { assets: { where: { type: 'PROFILE_PIC' } } } },
+      },
+      where: {
+        isActive: true,
+      },
+    });
+    //   cachedVacancies = vacancies;
+    //   if (vacancies) {
+    //     await this.cacheService.set(
+    //       `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+    //       vacancies,
+    //     );
+    //   }
+    // }
     const totalCount = await this.prismaService.vacancy.count();
     return {
-      data: cachedVacancies,
+      // data: cachedVacancies,
+      data: vacancies,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
@@ -114,6 +117,15 @@ export class VacancyService {
     const vacancy = await this.prismaService.vacancy.findUnique({
       where: {
         id: vacancyID,
+      },
+      include: {
+        assets: true,
+        business: {
+          include: {
+            owner: true,
+            assets: true,
+          },
+        },
       },
     });
     if (!vacancy) throw new NotFoundException('Vacancy not found');

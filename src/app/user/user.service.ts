@@ -21,38 +21,39 @@ export class UserService {
   async findAll(dto: AdminQueryFilters): Promise<PaginatedData<Array<User>>> {
     const { page, limit, deleted, verified, business } = dto;
     const skip = (page - 1) * limit;
-    let cachedUsers = await this.cacheService.get<Array<User>>(
-      `${ADMIN_ALL_USERS_CACHES}:${JSON.stringify(dto)}`,
-    );
-    if (!cachedUsers) {
-      const users = await this.prismaService.user.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          assets: {
-            where: { type: 'PROFILE_PIC' },
-            orderBy: { uploadedAt: 'desc' },
-            take: 1,
-          },
+    // let cachedUsers = await this.cacheService.get<Array<User>>(
+    //   `${ADMIN_ALL_USERS_CACHES}:${JSON.stringify(dto)}`,
+    // );
+    // if (!cachedUsers) {
+    const users = await this.prismaService.user.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        assets: {
+          where: { type: 'PROFILE_PIC' },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
         },
-        where: {
-          ...(deleted && { isDeleted: deleted }),
-          ...(verified && { isVerified: verified }),
-          ...(business && { isBusinessAccount: business }),
-        },
-      });
-      cachedUsers = users;
-      if (users) {
-        await this.cacheService.set(
-          `${ADMIN_ALL_USERS_CACHES}:${JSON.stringify(dto)}`,
-          users,
-        );
-      }
-    }
+      },
+      where: {
+        ...(deleted && { isDeleted: deleted }),
+        ...(verified && { isVerified: verified }),
+        ...(business && { isBusinessAccount: business }),
+      },
+    });
+    // cachedUsers = users;
+    // if (users) {
+    //   await this.cacheService.set(
+    //     `${ADMIN_ALL_USERS_CACHES}:${JSON.stringify(dto)}`,
+    //     users,
+    //   );
+    // }
+    // }
     const totalCount = await this.prismaService.user.count();
     return {
-      data: cachedUsers,
+      // data: cachedUsers,
+      data: users,
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),

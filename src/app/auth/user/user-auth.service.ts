@@ -113,6 +113,18 @@ export class UserAuthService {
     };
   }
 
+  async logout(id: string, response: Response) {
+    try {
+      await this.userService.update(id, { refreshToken: null });
+      response.clearCookie('access_token');
+      response.clearCookie('refresh_token');
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(error);
+        return { message: error.message };
+      }
+    }
+  }
   async handleOpenAuthentication(
     currentProvider: string,
     oAuthUser: GenericOAuthEntity,

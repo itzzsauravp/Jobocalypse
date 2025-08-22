@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { CacheService } from 'src/cache/cache.service';
+import { CacheModule } from 'src/cache/cache.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [
     PrismaModule,
     ConfigModule,
+    CacheModule,
     PassportModule,
-    CacheService,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -21,6 +21,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
       }),
     }),
   ],
-  exports: [PrismaModule, ConfigModule, PassportModule, JwtModule],
+  exports: [PrismaModule, ConfigModule, PassportModule, JwtModule, CacheModule],
 })
 export class SharedAuthModule {}

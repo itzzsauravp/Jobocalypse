@@ -8,7 +8,6 @@ import {
 } from '../common/interface/auth.interface';
 import { compare, hash } from 'bcryptjs';
 import { Response } from 'express';
-import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class AdminAuthService {
@@ -16,7 +15,6 @@ export class AdminAuthService {
     private readonly adminService: AdminService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly cacheService: CacheService,
   ) {}
   async validateEntity(
     email: string,
@@ -90,5 +88,18 @@ export class AdminAuthService {
       refresh_token,
       data: updatedUser,
     };
+  }
+
+  async logout(id: string, response: Response) {
+    try {
+      await this.adminService.update(id, { refreshToken: null });
+      response.clearCookie('access_token');
+      response.clearCookie('refresh_token');
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(error);
+        return { message: error.message };
+      }
+    }
   }
 }

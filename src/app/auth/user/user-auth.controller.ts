@@ -22,6 +22,7 @@ import { GithubAuthGuard } from '../common/guards/github-oauth.guard';
 import { GoogleAuthGuard } from '../common/guards/google-oauth.guard';
 import { GITHUB, GOOGLE } from '../common/constants';
 import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 
 @Controller('auth/user')
 export class UserAuthController {
@@ -69,6 +70,16 @@ export class UserAuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('google')
   async authGoogle() {}
+
+  @ResponseMessage('Logout sucessful')
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logoutAdmin(
+    @Request() request: ExpRequest,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return await this.userAuthService.logout(request.entity.id, response);
+  }
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
