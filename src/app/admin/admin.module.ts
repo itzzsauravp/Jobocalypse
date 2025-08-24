@@ -7,11 +7,13 @@ import { VacancyModule } from 'src/app/vacancy/vacancy.module';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { BusinessModule } from '../business/business.module';
 import { AdminAssetsModule } from 'src/assets/admin/admin-assets.module';
+import { UserAssetsModule } from 'src/assets/user/user-assets.module';
 
 @Module({
   imports: [
     PrismaModule,
     UserModule,
+    UserAssetsModule,
     VacancyModule,
     BusinessModule,
     CloudinaryModule,

@@ -7,7 +7,9 @@ import {
   Post,
   Request,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { LOGIN, SIGNUP, TEST } from 'src/common/constants/throttler-settings';
@@ -23,6 +25,7 @@ import { GoogleAuthGuard } from '../common/guards/google-oauth.guard';
 import { GITHUB, GOOGLE } from '../common/constants';
 import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth/user')
 export class UserAuthController {
@@ -32,18 +35,18 @@ export class UserAuthController {
   @UseGuards(MetadataGuard, LocalAuthGuard)
   @AuthEntity('user')
   @Post('login')
-  async loginAdmin(
+  async loginUser(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
   ): ReturnType<typeof this.userAuthService.generateToken> {
+    console.log('loggin in..');
     return await this.userAuthService.generateToken(request.entity, response);
   }
 
-  @Throttle(LOGIN)
   @UseGuards(MetadataGuard, JwtAuthRefreshGuard)
   @AuthEntity('user')
   @Post('refresh')
-  async refreshAdmin(
+  async refreshUser(
     @Request() request: ExpRequest,
     @Res({ passthrough: true }) response: Response,
   ): ReturnType<typeof this.userAuthService.generateToken> {
@@ -52,11 +55,13 @@ export class UserAuthController {
 
   @Throttle(SIGNUP)
   @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file'))
   @Post('signup')
   async signupUser(
+    @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateUserDTO,
   ): ReturnType<typeof this.userAuthService.signup> {
-    return await this.userAuthService.signup(dto);
+    return await this.userAuthService.signup(dto, file);
   }
 
   @Throttle(TEST)
@@ -92,7 +97,7 @@ export class UserAuthController {
       request.user,
       response,
     );
-    return response.redirect('/');
+    return response.redirect('http://localhost:8000/');
   }
 
   @Throttle(SIGNUP)
@@ -111,7 +116,7 @@ export class UserAuthController {
       request.user,
       response,
     );
-    return response.redirect('/');
+    return response.redirect('http://localhost:8000/');
   }
 
   @UseGuards(JwtAuthGuard)

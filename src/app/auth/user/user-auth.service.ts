@@ -17,6 +17,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserAssetsService } from 'src/assets/user/user-assets.service';
 
 @Injectable()
 export class UserAuthService {
@@ -25,6 +26,7 @@ export class UserAuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
+    private readonly userAssetsService: UserAssetsService,
   ) {}
   async validateEntity(
     email: string,
@@ -50,7 +52,7 @@ export class UserAuthService {
     }
   }
 
-  async signup(dto: CreateUserDTO) {
+  async signup(dto: CreateUserDTO, file: Express.Multer.File) {
     if (dto.password !== dto.password2) {
       throw new BadRequestException(
         'Password does not match the confirm password',
@@ -59,7 +61,11 @@ export class UserAuthService {
     const userExists = await this.userService.findExists(dto.email);
     if (userExists) throw new ConflictException('Email is already registered');
     try {
-      return this.userService.create(dto);
+      const user = await this.userService.create(dto);
+      if (file) {
+        await this.userAssetsService.saveProfilePicture(user.id, file);
+      }
+      return user;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Failed to create account');
@@ -131,6 +137,7 @@ export class UserAuthService {
     response: Response,
   ) {
     const existingUser = await this.userService.upsertCreate(oAuthUser);
+    console.log(existingUser);
     if (
       (existingUser.provider == currentProvider,
       existingUser.providerID === oAuthUser.providerID)

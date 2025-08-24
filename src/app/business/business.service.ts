@@ -77,10 +77,25 @@ export class BusinessService {
     return business;
   }
 
-  async findByID(businessID: string): Promise<Business> {
+  async findByID(
+    businessID: string,
+    includeDocuments: boolean = false,
+  ): Promise<Business> {
     const business = await this.prismaService.business.findUnique({
       where: {
         id: businessID,
+      },
+      include: {
+        assets: includeDocuments,
+        owner: {
+          include: {
+            assets: {
+              where: { type: 'PROFILE_PIC' },
+              take: 1,
+              orderBy: { uploadedAt: 'desc' },
+            },
+          },
+        },
       },
     });
     if (!business) throw new BadRequestException('Business doesnot exists');

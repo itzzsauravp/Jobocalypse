@@ -35,9 +35,7 @@ export class AdminAuthController {
     return await this.adminAuthService.logout(request.entity.id, response);
   }
 
-  @Throttle(LOGIN)
-  @UseGuards(MetadataGuard, JwtAuthRefreshGuard)
-  @AuthEntity('admin')
+  @UseGuards(JwtAuthRefreshGuard)
   @Post('refresh')
   async refreshAdmin(
     @Request() request: ExpRequest,

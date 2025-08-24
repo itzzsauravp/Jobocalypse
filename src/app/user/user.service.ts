@@ -76,6 +76,7 @@ export class UserService {
         id,
       },
       include: {
+        businessAccount: true,
         assets: {
           where: { type: 'PROFILE_PIC' },
           orderBy: { uploadedAt: 'desc' },

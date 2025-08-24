@@ -28,6 +28,7 @@ import { STATUS, Vacancy } from 'generated/prisma';
 import { BusinessService } from '../business/business.service';
 import { AdminAssetsService } from 'src/assets/admin/admin-assets.service';
 import { UploadApiResponse } from 'cloudinary';
+import { UserAssetsService } from 'src/assets/user/user-assets.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Roles('admin')
@@ -40,6 +41,7 @@ export class AdminController {
     private readonly businessService: BusinessService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly adminAssetsService: AdminAssetsService,
+    private readonly userAssetsService: UserAssetsService,
   ) {}
 
   // ========================= ADMIN ROUTES ===================================
@@ -144,6 +146,13 @@ export class AdminController {
     return this.userService.bulkUpdateVerficationStatus(ids, status);
   }
 
+  @Get('user/assets/all')
+  async getUsersAndAssets(): ReturnType<
+    typeof this.userAssetsService.getUserAssets
+  > {
+    return this.userAssetsService.getUserAssets();
+  }
+
   // ========================= VACANCY ROUTES ===================================
 
   @Get('vacancy/all')
@@ -188,8 +197,9 @@ export class AdminController {
   @Get('business/:id')
   async findBusinessByID(
     @Param('id') id: string,
+    @Query('assets') assets: boolean,
   ): ReturnType<typeof this.businessService.findByID> {
-    return await this.businessService.findByID(id);
+    return await this.businessService.findByID(id, assets);
   }
 
   @Patch('business/:id/status')

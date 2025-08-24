@@ -55,7 +55,7 @@ export class AdminAuthService {
         'JWT_REFRESH_TOKEN_EXPIRATION_TIME_DAY',
       )}d`,
     });
-    const updatedUser = await this.adminService.update(entity.id, {
+    await this.adminService.update(entity.id, {
       refreshToken: await hash(refresh_token, 10),
     });
     const accessTokenExpirationTimeMinutes = Number(
@@ -83,10 +83,11 @@ export class AdminAuthService {
       secure: this.configService.get('NODE_ENV') === 'production',
     });
 
+    const admin = await this.adminService.findByID(entity.id);
     return {
       access_token,
       refresh_token,
-      data: updatedUser,
+      data: admin,
     };
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UploadApiResponse } from 'cloudinary';
-import { UserAssets } from 'generated/prisma';
+import { User, UserAssets } from 'generated/prisma';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -40,6 +40,20 @@ export class UserAssetsService {
         userID,
         secureUrl: url,
         type: 'PROFILE_PIC',
+      },
+    });
+  }
+
+  async getUserAssets(): Promise<User[]> {
+    return await this.prismaService.user.findMany({
+      where: {
+        assets: {
+          some: {},
+        },
+        isDeleted: false,
+      },
+      include: {
+        assets: true,
       },
     });
   }

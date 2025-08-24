@@ -22,6 +22,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const res = exception.getResponse();
     message = typeof res === 'string' ? res : (res as any).message;
     response.status(status).json({
+      sucess: false,
       status: 'error',
       message,
       timestamp: new Date().toISOString(),

@@ -92,6 +92,7 @@ export class VacancyService {
         business: { include: { assets: { where: { type: 'PROFILE_PIC' } } } },
       },
       where: {
+        isDeleted: false,
         isActive: true,
       },
     });
