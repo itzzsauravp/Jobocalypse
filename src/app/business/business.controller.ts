@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   Request,
@@ -21,6 +22,11 @@ import { BusinessOwnerGuard } from './guards/business-owner.guard';
 @Controller('business')
 export class BusinessController {
   constructor(private readonly businessService: BusinessService) {}
+
+  @Get(':username')
+  async getBusinessByUsername(@Param('username') username: string) {
+    return this.businessService.findByUsername(username);
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard, BusinessOwnerGuard)

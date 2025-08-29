@@ -57,4 +57,24 @@ export class UserAssetsService {
       },
     });
   }
+
+  async uploadUserCV(
+    userID: string,
+    file: Express.Multer.File,
+  ): Promise<UserAssets> {
+    const uploadResult = (await this.cloudinaryService.singleFileUpload(
+      file,
+      'documents',
+      'user',
+      userID,
+    )) as UploadApiResponse;
+    return await this.prismaService.userAssets.create({
+      data: {
+        userID,
+        secureUrl: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        type: 'DOCUMENT',
+      },
+    });
+  }
 }

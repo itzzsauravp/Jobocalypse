@@ -16,82 +16,108 @@ datasource db {
 
 enum VACANCY_TYPE {
   ON_SITE @map("on-site")
-  REMOTE @map("remote")
-  HYBRID @map("hybrid")
+  REMOTE  @map("remote")
+  HYBRID  @map("hybrid")
 }
 
 enum VACANCY_LEVEL {
-  FRESHER @map("fresher")
-  JUNIOR @map("junior")
+  FRESHER   @map("fresher")
+  JUNIOR    @map("junior")
   MID_LEVEL @map("mid-level")
-  SENIOR @map("senior")
+  SENIOR    @map("senior")
 }
 
 enum STATUS {
-  PENDING @map("pending")
+  PENDING  @map("pending")
   APPROVED @map("approved")
   REJECTED @map("rejected")
 }
 
 enum ASSETS_TYPE {
-  PROFILE_PIC @map("profile_pic")
-  DOCUMENT @map("document")
+  PROFILE_PIC  @map("profile_pic")
+  DOCUMENT     @map("document")
   BANNER_IMAGE @map("banner_image")
-  IMAGE @map("image")
+  IMAGE        @map("image")
+}
+
+enum APPLICATION_STATUS {
+  PENDING     @map("pending")
+  REVIEWED    @map("reviewed")
+  SHORTLISTED @map("shortlisted")
+  INTERVIEW   @map("interview")
+  ACCEPTED    @map("accepted")
+  REJECTED    @map("rejected")
+  HIRED       @map("hired")
 }
 
 model User {
   id String @id @default(uuid()) @db.Uuid
 
-  firstName String
-  lastName String
-  email String @unique
-  password String?
-  address String?
-  bio String?
-  assets UserAssets[]
-  phoneNumber String?
-  refreshToken String?
-  isVerified Boolean @default(false)
-  isDeleted Boolean @default(false)
-  provider String?
-  providerID String?
-  worksAtID String? @db.Uuid // this has no use right now.
-  isBusinessAccount Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  firstName         String
+  lastName          String
+  username          String       @unique
+  email             String       @unique
+  password          String?
+  address           String?
+  bio               String?
+  assets            UserAssets[]
+  phoneNumber       String?
+  refreshToken      String?
+  isVerified        Boolean      @default(false)
+  isDeleted         Boolean      @default(false)
+  provider          String?
+  providerID        String?
+  worksAtID         String?      @db.Uuid // this has no use right now.
+  isBusinessAccount Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
-  businessAccount Business? @relation(name: "BusinessOwner")
+  businessAccount Business?   @relation(name: "BusinessOwner")
+  appliedFor      Applicant[]
+}
+
+model Applicant {
+  id String @id @default(uuid()) @db.Uuid
+
+  user      User    @relation(fields: [userID], references: [id])
+  userID    String  @db.Uuid
+  vacancy   Vacancy @relation(fields: [vacancyID], references: [id])
+  vacancyID String  @db.Uuid
+
+  cv_link String
+  status  APPLICATION_STATUS @default(PENDING)
 }
 
 model UserAssets {
-  id String @id @default(uuid()) @db.Uuid
-  secureUrl String
-  publicId String?
-  type ASSETS_TYPE
-  format String?
-  uploadedAt DateTime @default(now())
+  id         String      @id @default(uuid()) @db.Uuid
+  secureUrl  String
+  publicId   String?
+  type       ASSETS_TYPE
+  format     String?
+  uploadedAt DateTime    @default(now())
 
-  user User @relation(fields: [userID], references: [id])
+  user   User   @relation(fields: [userID], references: [id])
   userID String @db.Uuid
 }
 
 model Business {
   id String @id @default(uuid()) @db.Uuid
-  
-  name String
-  website String?
-  description String?
-  address String
-  phoneNumber String
-  assets BusinessAssets[]
-  vacancies Vacancy[]
-  status STATUS @default(PENDING)
-  isVerified Boolean @default(false)
-  isDeleted Boolean @default(false)
-  verifiedAt DateTime?
 
-  owner User @relation(name: "BusinessOwner", fields: [userID], references: [id])
+  name        String
+  username    String           @unique
+  website     String?
+  email       String           @unique
+  description String?
+  address     String
+  phoneNumber String
+  assets      BusinessAssets[]
+  vacancies   Vacancy[]
+  status      STATUS           @default(PENDING)
+  isVerified  Boolean          @default(false)
+  isDeleted   Boolean          @default(false)
+  verifiedAt  DateTime?
+
+  owner  User   @relation(name: "BusinessOwner", fields: [userID], references: [id])
   userID String @unique @db.Uuid
 
   createdAt DateTime @default(now())
@@ -99,72 +125,74 @@ model Business {
 }
 
 model BusinessAssets {
-  id String @id @default(uuid()) @db.Uuid
-  secureUrl String
-  publicId String
-  type ASSETS_TYPE
-  format String
-  uploadedAt DateTime @default(now())
-  status STATUS @default(PENDING)
+  id         String      @id @default(uuid()) @db.Uuid
+  secureUrl  String
+  publicId   String
+  type       ASSETS_TYPE
+  format     String
+  uploadedAt DateTime    @default(now())
+  status     STATUS      @default(PENDING)
 
-  business Business @relation(fields: [businessID], references: [id])
-  businessID String @db.Uuid
+  business   Business @relation(fields: [businessID], references: [id])
+  businessID String   @db.Uuid
 }
 
 model Vacancy {
   id String @id @default(uuid()) @db.Uuid
 
-  title String
+  title       String
   description String
-  deadline DateTime
-  tags String[]
-  type VACANCY_TYPE
-  level VACANCY_LEVEL[]
-  assets VacancyAssets[]
-  isActive Boolean @default(false)
-  isDeleted Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  deadline    DateTime
+  tags        String[]
+  type        VACANCY_TYPE
+  level       VACANCY_LEVEL[]
+  assets      VacancyAssets[]
+  isActive    Boolean         @default(false)
+  isDeleted   Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
-  business Business @relation(fields: [businessID], references: [id])
-  businessID String @db.Uuid
+  business   Business    @relation(fields: [businessID], references: [id])
+  businessID String      @db.Uuid
+  applicant  Applicant[]
 }
 
 model VacancyAssets {
-  id String @id @default(uuid()) @db.Uuid
-  secureUrl String
-  publicId String
-  type ASSETS_TYPE
-  format String
-  uploadedAt DateTime @default(now())
+  id         String      @id @default(uuid()) @db.Uuid
+  secureUrl  String
+  publicId   String
+  type       ASSETS_TYPE
+  format     String
+  uploadedAt DateTime    @default(now())
 
-  vacancy Vacancy @relation(fields: [vacancyID], references: [id])
-  vacancyID String @db.Uuid
+  vacancy   Vacancy @relation(fields: [vacancyID], references: [id])
+  vacancyID String  @db.Uuid
 }
 
 model Admin {
   id String @id @default(uuid()) @db.Uuid
 
-  email String @unique
-  firstName String
-  lastName String
-  password String
-  address String?
-  phoneNumber String?
+  email        String        @unique
+  username     String        @unique
+  firstName    String
+  lastName     String
+  password     String
+  address      String?
+  phoneNumber  String?
   refreshToken String?
-  assets AdminAssets[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  assets       AdminAssets[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model AdminAssets {
-  id String @id @default(uuid()) @db.Uuid
-  secureUrl String
-  publicId String?
-  type ASSETS_TYPE
-  format String?
-  uploadedAt DateTime @default(now())
+  id         String      @id @default(uuid()) @db.Uuid
+  secureUrl  String
+  publicId   String?
+  type       ASSETS_TYPE
+  format     String?
+  uploadedAt DateTime    @default(now())
 
-  admin Admin @relation(fields: [adminID], references: [id])
+  admin   Admin  @relation(fields: [adminID], references: [id])
   adminID String @db.Uuid
 }

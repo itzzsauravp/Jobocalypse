@@ -56,7 +56,12 @@ export class CloudinaryService {
     folder: CloudinarySubFolder,
     id: string,
   ): Promise<CloudinaryResponse> {
-    const optimizeBuffer = await this.optimizeBuffer(file.buffer);
+    let optimizeBuffer: Buffer;
+    if (file.mimetype.includes('image')) {
+      optimizeBuffer = await this.optimizeBuffer(file.buffer);
+    } else {
+      optimizeBuffer = file.buffer;
+    }
     return new Promise<CloudinaryResponse>((resolve, reject) => {
       const uniqueName = `${Date.now()}-${id}`;
       const uploadStream = this.cloudinaryInstance.uploader.upload_stream(
@@ -130,5 +135,14 @@ export class CloudinaryService {
     } catch (error) {
       console.log('Failed to delete image.', error);
     }
+  }
+
+  getSignedUrl(publicID: string) {
+    return this.cloudinaryInstance.url(publicID, {
+      resource_type: 'auto',
+      type: 'authenticated',
+      sign_url: true,
+      expires_at: Math.floor(Date.now() / 1000) + 60 * 5,
+    });
   }
 }

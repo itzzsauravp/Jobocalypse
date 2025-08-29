@@ -1,11 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { UploadApiResponse } from 'cloudinary';
 import { ASSETS_TYPE, Prisma } from 'generated/prisma';
 import { STATUS } from 'generated/prisma';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class BusinessAssetsService {
-  constructor() {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async saveDocumentsInBulk(
     tsx: Prisma.TransactionClient,
@@ -23,5 +32,23 @@ export class BusinessAssetsService {
     return await tsx.businessAssets.createMany({
       data: documentsList,
     });
+  }
+
+  async deleteBusinessAsset(id: string) {
+    try {
+      const deleteAsset = await this.prismaService.businessAssets.delete({
+        where: {
+          id,
+        },
+      });
+      if (deleteAsset) {
+        await this.cloudinaryService.deleteFile(deleteAsset.publicId);
+        return deleteAsset;
+      } else {
+        throw new InternalServerErrorException('Something went wrong!');
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

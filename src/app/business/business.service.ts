@@ -77,6 +77,25 @@ export class BusinessService {
     return business;
   }
 
+  async findByUsername(username: string) {
+    const business = await this.prismaService.business.findUnique({
+      where: {
+        username,
+      },
+      include: {
+        assets: {
+          where: {
+            type: 'PROFILE_PIC',
+          },
+          take: 1,
+          orderBy: { uploadedAt: 'desc' },
+        },
+      },
+    });
+    if (!business) return null;
+    return business;
+  }
+
   async findByID(
     businessID: string,
     includeDocuments: boolean = false,
@@ -128,6 +147,8 @@ export class BusinessService {
             data: {
               owner: { connect: { id } },
               address: dto.address,
+              email: dto.email,
+              username: dto.email.split('@')[0],
               description: dto.description,
               name: dto.name,
               phoneNumber: dto.phoneNumber,

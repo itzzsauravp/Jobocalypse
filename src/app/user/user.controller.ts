@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   Request,
@@ -46,6 +47,11 @@ export class UserController {
     return await this.userService.update(request.entity.id, updatedData);
   }
 
+  @Get(':username')
+  async getUserByUsername(@Param('username') username: string) {
+    return await this.userService.findByUsername(username);
+  }
+
   @Delete()
   async deleteUser(
     @Request() request: ExpRequest,
@@ -64,5 +70,15 @@ export class UserController {
       request.entity.id,
       file,
     );
+  }
+
+  @ResponseMessage('CV uploaded successfully')
+  @Post('cv')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadCV(
+    @Request() request: ExpRequest,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.userAssetsService.uploadUserCV(request.entity.id, file);
   }
 }

@@ -34,6 +34,7 @@ class SeedDatabase {
         email: 'admin@gmail.com',
         firstName: 'Saurav',
         lastName: 'Parajulee',
+        username: faker.internet.email().split('@')[0],
         password: await hash(this.password, 10),
         address: faker.location.city(),
         phoneNumber: faker.phone.number(),
@@ -41,9 +42,11 @@ class SeedDatabase {
     });
 
     for (let i = 0; i < 69; i++) {
+      const email = faker.internet.email();
       const user = await this.prismaClient.user.create({
         data: {
-          email: faker.internet.email(),
+          email,
+          username: email.split('@')[0],
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
           password: await hash(this.password, 10),
@@ -53,10 +56,13 @@ class SeedDatabase {
         },
       });
       if (i % 2 === 0) {
+        const email = faker.internet.email();
         const business = await this.prismaClient.business.create({
           data: {
+            email,
             address: faker.location.city(),
             name: faker.company.name(),
+            username: email.split('@')[0],
             phoneNumber: faker.phone.number(),
             userID: user.id,
             description: faker.lorem.paragraph(),

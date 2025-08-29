@@ -22,11 +22,15 @@ import { JwtAuthGuard } from '../auth/common/guards/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { BusinessOwnerGuard } from '../business/guards/business-owner.guard';
 import { QueryFitlers } from 'src/common/dtos/pagination.dto';
+import { VacancyAssetsService } from 'src/assets/vacancy/vacancy-assets.service';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('vacancy')
 export class VacancyController {
-  constructor(private readonly vacancyService: VacancyService) {}
+  constructor(
+    private readonly vacancyService: VacancyService,
+    private readonly vacanyAssetsService: VacancyAssetsService,
+  ) {}
 
   @Get('/all')
   async findAllVacancy(
@@ -47,6 +51,20 @@ export class VacancyController {
     );
   }
 
+  @Get('/list/:id')
+  async listVacanciesForBusinessByID(
+    @Param('id') id: string,
+    @Query() dto: QueryFitlers,
+  ): ReturnType<typeof this.vacancyService.listBusinessVacancies> {
+    return await this.vacancyService.listBusinessVacancies(id, dto);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getVacancy(@Param('id') id: string) {
+    return await this.vacancyService.findByID(id);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard, BusinessOwnerGuard)
   @UseInterceptors(FilesInterceptor('files', 3))
@@ -60,6 +78,29 @@ export class VacancyController {
       request.businessID,
       dto,
       files,
+    );
+  }
+
+  @Post(':id/apply')
+  @UseGuards(JwtAuthGuard)
+  async applyForVacancy(
+    @Request() request: ExpRequest,
+    @Param('id') id: string,
+  ): ReturnType<typeof this.vacancyService.applyForVacancy> {
+    return await this.vacancyService.applyForVacancy(id, request.entity.id);
+  }
+
+  @Get(':id/applicants')
+  @UseGuards(JwtAuthGuard, BusinessOwnerGuard)
+  async getApplicants(
+    @Request() request: ExpRequest,
+    @Param('id') id: string,
+    @Query() query: QueryFitlers,
+  ): ReturnType<typeof this.vacancyService.getVacancyApplicants> {
+    return await this.vacancyService.getVacancyApplicants(
+      id,
+      request.businessID,
+      query,
     );
   }
 
@@ -81,7 +122,7 @@ export class VacancyController {
   @Delete(':id')
   @ResponseMessage('vacancy deleted successfully')
   @UseGuards(JwtAuthGuard, BusinessOwnerGuard)
-  async getVacancyByID(
+  async deleteVacancy(
     @Param('id') vacancyID: string,
     @Request() request: ExpRequest,
   ): ReturnType<typeof this.vacancyService.findByID> {
@@ -89,5 +130,11 @@ export class VacancyController {
       request.businessID,
       vacancyID,
     );
+  }
+
+  @Delete('asset/:id')
+  @UseGuards(JwtAuthGuard, BusinessOwnerGuard)
+  async deleteVacancyAsset(@Param('id') assetID: string) {
+    await this.vacanyAssetsService.deleteVacancyAsset(assetID);
   }
 }

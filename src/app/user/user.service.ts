@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from 'src/app/user/dtos/create-user.dto';
 import { AdminQueryFilters } from 'src/common/dtos/pagination.dto';
 import { PaginatedData } from 'src/common/interfaces/paginated-data.interface';
-import { User } from 'generated/prisma';
+import { User, UserAssets } from 'generated/prisma';
 import { GenericOAuthEntity } from '../auth/common/interface/auth.interface';
 import { UserAssetsService } from 'src/assets/user/user-assets.service';
 import { CacheService } from 'src/cache/cache.service';
@@ -70,7 +70,12 @@ export class UserService {
     return user;
   }
 
-  async findByID(id: string): Promise<User> {
+  async findByID(id: string): Promise<
+    User & {
+      cv: UserAssets | undefined;
+      profilePicture: UserAssets | undefined;
+    }
+  > {
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
@@ -78,10 +83,34 @@ export class UserService {
       include: {
         businessAccount: true,
         assets: {
-          where: { type: 'PROFILE_PIC' },
+          where: { type: { in: ['DOCUMENT', 'PROFILE_PIC'] } },
           orderBy: { uploadedAt: 'desc' },
-          take: 1,
         },
+      },
+    });
+    const profilePicture = user?.assets.find(
+      (item) => item.type === 'PROFILE_PIC',
+    );
+    const cv = user?.assets.find((item) => item.type === 'DOCUMENT');
+    delete (user as any).assets;
+    if (!user) throw new NotFoundException('User not found');
+    return { ...user, cv, profilePicture };
+  }
+
+  async findByUsername(username: string): Promise<User> {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        username,
+      },
+      include: {
+        assets: {
+          where: {
+            type: 'PROFILE_PIC',
+          },
+          take: 1,
+          orderBy: { uploadedAt: 'desc' },
+        },
+        businessAccount: true,
       },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -121,6 +150,7 @@ export class UserService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         email: dto.email,
+        username: dto.email.split('@')[0],
         password: hashedPassword,
         address: dto.address,
         phoneNumber: dto.phoneNumber,
@@ -137,6 +167,7 @@ export class UserService {
         email: dto.email,
         firstName: dto.firstName,
         lastName: dto.lastName,
+        username: dto.email.split('@')[0],
         provider: dto.provider,
         providerID: dto.providerID,
       },

@@ -8,7 +8,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';
 import { UpdateVacancyDTO } from './dtos/update-vacancy.dto';
-import { Vacancy } from 'generated/prisma';
+import { Applicant, Vacancy } from 'generated/prisma';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
 import { VacancyAssetsService } from 'src/assets/vacancy/vacancy-assets.service';
@@ -136,19 +136,38 @@ export class VacancyService {
   async listBusinessVacancies(
     businessID: string,
     dto: QueryFitlers,
-  ): Promise<Array<Vacancy>> {
+  ): Promise<PaginatedData<Array<Vacancy>>> {
     const { page, limit, active } = dto;
     const skip = (page - 1) * limit;
-    return await this.prismaService.vacancy.findMany({
+    const vacancies = await this.prismaService.vacancy.findMany({
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
+      include: {
+        assets: { where: { type: 'IMAGE' } },
+        business: { include: { assets: { where: { type: 'PROFILE_PIC' } } } },
+        _count: {
+          select: { applicant: true },
+        },
+      },
       where: {
         businessID,
         isDeleted: false,
         ...(active && { isActive: active }),
       },
     });
+    const totalCount = await this.prismaService.vacancy.count({
+      where: {
+        isDeleted: false,
+        businessID,
+      },
+    });
+    return {
+      data: vacancies,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
   }
 
   async createVacancy(
@@ -212,6 +231,56 @@ export class VacancyService {
     }
   }
 
+  async applyForVacancy(vacancyID: string, userID: string) {
+    const user = await this.userService.findByID(userID);
+    if (!user.cv) throw new BadRequestException('User has no CV uploaded');
+    try {
+      const vacancyApplication = await this.prismaService.applicant.create({
+        data: {
+          userID,
+          cv_link: user.cv.secureUrl,
+          vacancyID,
+        },
+      });
+      return vacancyApplication;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Error while applying for vacancy',
+      );
+    }
+  }
+
+  async getVacancyApplicants(
+    vacancyID: string,
+    businessID: string,
+    query: QueryFitlers,
+  ): Promise<PaginatedData<Applicant[]>> {
+    const { limit, page } = query;
+    const skip = (page - 1) * limit;
+    const vacancy = await this.findByID(vacancyID);
+    const totalCount = await this.prismaService.applicant.count({
+      where: {
+        vacancyID,
+      },
+    });
+    if (vacancy.businessID !== businessID) throw new UnauthorizedException();
+    const applicant = await this.prismaService.applicant.findMany({
+      where: {
+        vacancyID,
+      },
+      skip,
+      take: limit,
+      include: { user: true },
+    });
+    return {
+      data: applicant,
+      totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
+  }
+
   async updateVacancy(
     businessID: string,
     vacancyID: string,
@@ -230,6 +299,7 @@ export class VacancyService {
     if (updatedVacancy) {
       this.cacheService.deleteByPattern(`${ADMIN_ALL_VACANCIES_CACHE}`);
     }
+    console.log(dto);
     return updatedVacancy;
   }
 
