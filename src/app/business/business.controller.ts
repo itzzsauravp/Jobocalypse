@@ -23,6 +23,12 @@ import { BusinessOwnerGuard } from './guards/business-owner.guard';
 export class BusinessController {
   constructor(private readonly businessService: BusinessService) {}
 
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard, BusinessOwnerGuard)
+  async getDashboardFeed(@Request() request: ExpRequest) {
+    return await this.businessService.getDashboardDetails(request.businessID);
+  }
+
   @Get(':username')
   async getBusinessByUsername(@Param('username') username: string) {
     return this.businessService.findByUsername(username);

@@ -52,6 +52,11 @@ export class AdminController {
     return await this.adminService.findByID(request.entity.id);
   }
 
+  @Get('dashboard')
+  async getDashbordFeed() {
+    return await this.adminService.getDashboardDetails();
+  }
+
   @ResponseMessage('admin updated successfully')
   @Patch()
   async updateAdmin(

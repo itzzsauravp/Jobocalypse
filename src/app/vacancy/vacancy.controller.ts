@@ -23,6 +23,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { BusinessOwnerGuard } from '../business/guards/business-owner.guard';
 import { QueryFitlers } from 'src/common/dtos/pagination.dto';
 import { VacancyAssetsService } from 'src/assets/vacancy/vacancy-assets.service';
+import { SearchQuery } from 'src/common/dtos/search-query.dto';
 
 @UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('vacancy')
@@ -37,6 +38,11 @@ export class VacancyController {
     @Query() dto: QueryFitlers,
   ): ReturnType<typeof this.vacancyService.findAll> {
     return await this.vacancyService.findAllGeneric(dto);
+  }
+
+  @Get('/search')
+  async searchVacancy(@Query() { q }: SearchQuery) {
+    return await this.vacancyService.searchVacancies(q);
   }
 
   @Get('/list')

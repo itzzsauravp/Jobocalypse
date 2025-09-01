@@ -252,4 +252,94 @@ export class BusinessService {
       where: { id: { in: businessIDs } },
     });
   }
+
+  // total vacancies, total applicants, vacancies today, published vacancies, unpublished vacancies, shortlisted, interview pending, hires
+
+  async getDashboardDetails(businessID: string) {
+    const startOTD = new Date();
+    startOTD.setHours(0, 0, 0, 0);
+
+    const endOTD = new Date();
+    endOTD.setHours(23, 59, 59, 999);
+
+    const totalVacancies = await this.prismaService.vacancy.count({
+      where: {
+        isActive: true,
+        businessID,
+      },
+    });
+
+    const totalApplicants = await this.prismaService.applicant.count({
+      where: {
+        vacancy: {
+          businessID,
+        },
+      },
+    });
+
+    const vacanciesToday = await this.prismaService.vacancy.count({
+      where: {
+        businessID,
+        createdAt: {
+          gte: startOTD,
+          lte: endOTD,
+        },
+      },
+    });
+
+    const publishedVacancies = await this.prismaService.vacancy.count({
+      where: {
+        isActive: true,
+        businessID,
+      },
+    });
+
+    const unPublishedVacancies = await this.prismaService.vacancy.count({
+      where: {
+        isActive: false,
+        businessID,
+      },
+    });
+
+    const shortlisted = await this.prismaService.applicant.findMany({
+      where: {
+        status: 'SHORTLISTED',
+        vacancy: {
+          businessID,
+        },
+      },
+      include: { user: true },
+    });
+
+    const interviewPending = await this.prismaService.applicant.findMany({
+      where: {
+        status: 'INTERVIEW',
+        vacancy: {
+          businessID,
+        },
+      },
+      include: { user: true },
+    });
+
+    const hires = await this.prismaService.applicant.findMany({
+      where: {
+        status: 'HIRED',
+        vacancy: {
+          businessID,
+        },
+      },
+      include: { user: true },
+    });
+
+    return {
+      totalVacancies,
+      totalApplicants,
+      vacanciesToday,
+      publishedVacancies,
+      unPublishedVacancies,
+      shortlisted,
+      interviewPending,
+      hires,
+    };
+  }
 }

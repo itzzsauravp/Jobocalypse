@@ -84,4 +84,73 @@ export class AdminService {
     });
     return admin;
   }
+
+  async getDashboardDetails() {
+    const startOTD = new Date();
+    startOTD.setHours(0, 0, 0, 0);
+
+    const endOTD = new Date();
+    endOTD.setHours(23, 59, 59, 999);
+
+    const totalUsers = await this.prismaService.user.count({
+      where: {
+        isDeleted: false,
+      },
+    });
+    const totalBusinesses = await this.prismaService.business.count({
+      where: {
+        isDeleted: false,
+      },
+    });
+    const businessPendingVerification = await this.prismaService.business.count(
+      {
+        where: {
+          isDeleted: false,
+          status: 'PENDING',
+        },
+      },
+    );
+    const vacanciesToday = await this.prismaService.vacancy.count({
+      where: {
+        createdAt: {
+          gte: startOTD,
+          lte: endOTD,
+        },
+      },
+    });
+    const verifiedUsers = await this.prismaService.user.count({
+      where: {
+        isVerified: true,
+      },
+    });
+    const verifiedBusinesses = await this.prismaService.business.count({
+      where: {
+        isVerified: true,
+      },
+    });
+
+    const activeVacancies = await this.prismaService.vacancy.count({
+      where: {
+        isActive: true,
+      },
+    });
+
+    const recentSignUps = await this.prismaService.user.findMany({
+      where: {
+        refreshToken: { not: null },
+      },
+      take: 5,
+    });
+
+    return {
+      totalUsers,
+      totalBusinesses,
+      businessPendingVerification,
+      vacanciesToday,
+      verifiedUsers,
+      verifiedBusinesses,
+      activeVacancies,
+      recentSignUps,
+    };
+  }
 }

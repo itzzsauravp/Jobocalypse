@@ -17,6 +17,7 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 import { Request } from 'express';
 import { BusinessModule } from './business/business.module';
 import { EsewaModule } from 'src/payment/esewa/esewa.module';
+import { ApplicantModule } from './applicant/applicant.module';
 @Module({
   imports: [
     EsewaModule,
@@ -50,6 +51,7 @@ import { EsewaModule } from 'src/payment/esewa/esewa.module';
         },
       }),
     }),
+    ApplicantModule,
   ],
   controllers: [AppController],
   providers: [

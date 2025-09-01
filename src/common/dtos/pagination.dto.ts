@@ -1,5 +1,11 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, Max } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+} from 'class-validator';
 
 export class PaginationDTO {
   @Type(() => Number)
@@ -19,6 +25,10 @@ export class QueryFitlers extends PaginationDTO {
   @IsOptional()
   @IsBoolean()
   active?: boolean;
+
+  @IsOptional()
+  @IsString()
+  q?: string;
 }
 
 export class AdminQueryFilters extends QueryFitlers {

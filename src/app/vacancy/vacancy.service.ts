@@ -8,7 +8,12 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateVacancyDTO } from './dtos/create-vacancy.dto';
 import { UpdateVacancyDTO } from './dtos/update-vacancy.dto';
-import { Applicant, Vacancy } from 'generated/prisma';
+import {
+  Applicant,
+  Vacancy,
+  VACANCY_LEVEL,
+  VACANCY_TYPE,
+} from 'generated/prisma';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
 import { VacancyAssetsService } from 'src/assets/vacancy/vacancy-assets.service';
@@ -234,6 +239,15 @@ export class VacancyService {
   async applyForVacancy(vacancyID: string, userID: string) {
     const user = await this.userService.findByID(userID);
     if (!user.cv) throw new BadRequestException('User has no CV uploaded');
+    const existingApplication = await this.prismaService.applicant.findFirst({
+      where: {
+        AND: {
+          userID,
+          vacancyID,
+        },
+      },
+    });
+    if (existingApplication) throw new BadRequestException('Already Applied ');
     try {
       const vacancyApplication = await this.prismaService.applicant.create({
         data: {
@@ -343,4 +357,127 @@ export class VacancyService {
       },
     });
   }
+
+  async searchVacancies(q: string) {
+    const query = `
+
+    SELECT
+  v.id,
+  v.title,
+  v.description,
+  v.tags,
+  v.deadline,
+  v.type,
+  v.level,
+  v."businessID",
+  ts_rank(v.search_vector, plainto_tsquery($1)) AS rank,
+
+  -- Vacancy assets of type IMAGE
+  COALESCE(
+    json_agg(
+      DISTINCT jsonb_build_object(
+        'id', va.id,
+        'secureUrl', va."secureUrl",
+        'publicId', va."publicId",
+        'type', va.type,
+        'format', va.format,
+        'uploadedAt', va."uploadedAt"
+      )
+    ) FILTER (WHERE va.id IS NOT NULL),
+    '[]'
+  ) AS assets,
+
+  -- Business info including PROFILE_PIC assets
+  jsonb_build_object(
+    'id', b.id,
+    'name', b.name,
+    'username', b.username,
+    'website', b.website,
+    'email', b.email,
+    'description', b.description,
+    'address', b.address,
+    'phoneNumber', b."phoneNumber",
+    'status', b.status,
+    'isVerified', b."isVerified",
+    'isDeleted', b."isDeleted",
+    'verifiedAt', b."verifiedAt",
+    'assets', COALESCE(
+      json_agg(
+        DISTINCT jsonb_build_object(
+          'id', ba.id,
+          'secureUrl', ba."secureUrl",
+          'publicId', ba."publicId",
+          'type', ba.type,
+          'format', ba.format,
+          'uploadedAt', ba."uploadedAt"
+        )
+      ) FILTER (WHERE ba.id IS NOT NULL),
+      '[]'
+    )
+  ) AS business
+
+FROM "Vacancy" v
+LEFT JOIN "VacancyAssets" va ON va."vacancyID" = v.id AND va.type = 'image'
+LEFT JOIN "Business" b ON b.id = v."businessID"
+LEFT JOIN "BusinessAssets" ba ON ba."businessID" = b.id AND ba.type = 'profile_pic'
+
+WHERE v.search_vector @@ plainto_tsquery($1)
+  AND v."isActive" = true
+  AND v."isDeleted" = false
+
+GROUP BY v.id, b.id
+ORDER BY rank DESC
+LIMIT 50;
+
+
+    `;
+
+    const data = await this.prismaService.$queryRawUnsafe(query, q);
+    return data;
+  }
+
+  // async searchVacancies(dto: QueryFitlers) {
+  //   const { page, limit, q } = dto;
+  //   const skip = (page - 1) * limit;
+  //   // let cachedVacancies = await this.cacheService.get<Array<Vacancy>>(
+  //   //   `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+  //   // );
+  //   // if (!cachedVacancies) {
+  //   const vacancies = await this.prismaService.vacancy.findMany({
+  //     skip,
+  //     take: 10,
+  //     orderBy: { createdAt: 'desc' },
+  //     include: {
+  //       assets: { where: { type: 'IMAGE' } },
+  //       business: { include: { assets: { where: { type: 'PROFILE_PIC' } } } },
+  //     },
+  //     where: {
+  //       isDeleted: false,
+  //       isActive: true,
+  //       OR: [
+  //         { title: { contains: q, mode: 'insensitive' } },
+  //         { description: { contains: q, mode: 'insensitive' } },
+  //         { tags: { has: q } },
+  //         { level: { has: q as VACANCY_LEVEL } },
+  //         { type: q as VACANCY_TYPE },
+  //       ],
+  //     },
+  //   });
+  //   //   cachedVacancies = vacancies;
+  //   //   if (vacancies) {
+  //   //     await this.cacheService.set(
+  //   //       `${GENERIC_ALL_VACANCIES_CACHE}:${JSON.stringify(dto)}`,
+  //   //       vacancies,
+  //   //     );
+  //   //   }
+  //   // }
+  //   const totalCount = await this.prismaService.vacancy.count();
+  //   return {
+  //     // data: cachedVacancies,
+  //     data: vacancies,
+  //     totalCount,
+  //     currentPage: page,
+  //     totalPages: Math.ceil(totalCount / limit),
+  //   };
+  // }
 }
