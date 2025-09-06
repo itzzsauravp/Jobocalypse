@@ -1,6 +1,6 @@
-# JobPortal API
+# Jobocalypse 💀
 
-A **backend API** for managing users, businesses, vacancies, and applications in a job portal platform. Built with **NestJS** and TypeScript, this API supports user authentication, admin management, vacancy posting, and applicant tracking.
+A **RESTFUL API** for managing users, businesses, vacancies, and applications in a job portal platform. Built with **NestJS** and TypeScript, this API supports user authentication, admin management, vacancy posting, and applicant tracking.
 
 > ⚠️ **Note:** Still working on some parts. Its under development
 
